@@ -5,7 +5,6 @@ SCSS scaffold
 ```
 scss/
 ├── helpers/
-│   ├── partials/
 │   ├── _backgrounds.scss
 │   ├── _layout.scss
 │   ├── _misc.scss
