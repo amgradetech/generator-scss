@@ -31,8 +31,12 @@ _text.scss
 │   ├── _util.scss
 │   ├── _sprite-set.scss
 │   └── _variables-set.scss
-└── core.scss
+├── core.scss
+└── config.rb
 ```
+## config.rb  
+It is ready to be compiled with [compass](http://compass-style.org/).  
+
 ## core.scss
 Core file contains @imports for everything in this kit:
 ``` javascript
