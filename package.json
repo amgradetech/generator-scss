@@ -1,0 +1,22 @@
+{
+  "name": "generator-scss",
+  "version": "0.1.0",
+  "description": "scss scaffold",
+  "main": "app/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RusinovAnton/generator-scss.git"
+  },
+  "keywords": [
+    "yeoman-generator"
+  ],
+  "author": "Rusinov Anton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RusinovAnton/generator-scss/issues"
+  },
+  "homepage": "https://github.com/RusinovAnton/generator-scss#readme",
+  "dependencies": {
+    "yeoman-generator": "^0.22.5"
+  }
+}
