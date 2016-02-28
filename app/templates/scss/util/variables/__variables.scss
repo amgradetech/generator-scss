@@ -1,0 +1,14 @@
+@import 'borders';
+@import 'colors';
+@import 'folders';
+@import 'sizes';
+@import 'typography';
+@import 'z-index-map';
+
+// Enable vendor prefixes adding:
+$vendor-prefixes-enabled: true;
+
+// Default transition length
+$trans-length: 0.3s;
+
+

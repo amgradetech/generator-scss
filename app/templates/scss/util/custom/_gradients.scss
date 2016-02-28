@@ -1,0 +1,11 @@
+@mixin gradient-v-gray {
+  @include gradient-v($gray-start, $gray-end);
+}
+
+@mixin gradient-v-blue {
+  @include gradient-v($blue-start, $blue-end);
+}
+
+@mixin gradient-v-green {
+  @include gradient-v($green-start, $green-end);
+}
