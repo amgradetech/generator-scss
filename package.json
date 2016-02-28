@@ -1,5 +1,5 @@
 {
-  "name": "generator-scss",
+  "name": "generator-itscss",
   "version": "0.1.0",
   "description": "scss scaffold",
   "main": "app/index.js",
