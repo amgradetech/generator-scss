@@ -15,6 +15,7 @@ module.exports = yo.Base.extend({
       build: {
         custom: {
           typography: false,
+          pages: false,
           helpers: false,
           layout: false,
           vars: false,
@@ -24,6 +25,7 @@ module.exports = yo.Base.extend({
         },
         base: {
           typography: true,
+          pages: true,
           helpers: false,
           layout: false,
           vars: false,
@@ -33,6 +35,7 @@ module.exports = yo.Base.extend({
         },
         full: {
           typography: true,
+          pages: true,
           helpers: true,
           layout: true,
           vars: true,
@@ -80,48 +83,55 @@ module.exports = yo.Base.extend({
     },
     custom: function () {
       var done = this.async();
-      if (!this.options.custom) return true;
-
-      this.prompt(
-        {
-          type: 'checkbox',
-          name: 'custom',
-          message: 'Choose custom components to load:',
-          choices: [
-            {
-              value: 'typography',
-              checked: true,
-              name: '- typography'
-            },
-            {
-              value: 'helpers',
-              name: '- helpers'
-            },
-            {
-              value: 'layout',
-              name: '- layout (extended)'
-            },
-            {
-              value: 'vars',
-              name: '- variables (extended)'
-            },
-            {
-              value: 'customMixins',
-              name: '- custom-mixins'
-            },
-            {
-              value: 'sprite',
-              name: '- sprite'
-            }
-          ]
-        },
-        function (response) {
-          response.custom.forEach(function (opt) {
-            this.options.build[opt] = true;
-          }.bind(this));
-          done();
-        }.bind(this)
-      );
+      if (this.options.custom) {
+        this.prompt(
+          {
+            type: 'checkbox',
+            name: 'custom',
+            message: 'Choose custom components to load:',
+            choices: [
+              {
+                value: 'typography',
+                checked: true,
+                name: '- typography'
+              },
+              {
+                value: 'pages',
+                name: '- pages',
+                checked: true
+              },
+              {
+                value: 'helpers',
+                name: '- helpers'
+              },
+              {
+                value: 'layout',
+                name: '- layout (extended)'
+              },
+              {
+                value: 'vars',
+                name: '- variables (extended)'
+              },
+              {
+                value: 'customMixins',
+                name: '- custom-mixins'
+              },
+              {
+                value: 'sprite',
+                name: '- sprite'
+              }
+            ]
+          },
+          function (response) {
+            response.custom.forEach(function (opt) {
+              this.options.build[opt] = true;
+            }.bind(this));
+            done();
+          }.bind(this)
+        );
+      } else {
+        done();
+      }
     },
     mixinsLibrary: function () {
       var done = this.async();
@@ -168,62 +178,68 @@ module.exports = yo.Base.extend({
     },
     mixins: function () {
       var done = this.async();
-      if (!this.options.build.mixins) return true;
-
-      this.config.files.util += this.fs.read(path.join(this.templatePath(), 'import/util/variables')) + '\n\n';
-      this.config.files.util += '// Mixins library\n@import "' + this.options.mixinsPath + '"';
-
+      if (this.options.build.mixins) {
+        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(), 'import/util/variables'));
+        this.config.files.util += '\n' + '// Mixins library\n@import "' + this.options.mixinsPath + '";' + '\n';
+      }
       done();
     },
     customMixins: function () {
       var done = this.async();
-      if (!this.options.build.customMixins) return true;
+      if (this.options.build.customMixins) {
+        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(), 'import/util/custom-mixins'));
 
-      this.config.files.util += this.fs.read(path.join(this.templatePath(), 'import/util/custom-mixins')) + '\n\n';
-
-      this.fs.copy(
-        path.join(this.templatePath(), 'extended', 'custom-mixins'),
-        path.join(this.destinationPath(), 'util/custom-mixins')
-      );
-
+        this.fs.copy(
+          path.join(this.templatePath(), 'extended', 'custom-mixins'),
+          path.join(this.destinationPath(), 'util/custom-mixins')
+        );
+      }
       done();
     },
     sprite: function () {
       var done = this.async();
 
-      if (!this.options.build.sprite) return true;
+      if (this.options.build.sprite) {
+        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(), 'import/util/spriting'));
 
-      this.config.files.util += this.fs.read(path.join(this.templatePath(), 'import/util/spriting')) + '\n\n';
-
-      this.fs.copy(
-        path.join(this.templatePath(), 'extended', '_spriting.scss'),
-        path.join(this.destinationPath(), 'util/_spriting.scss')
-      );
-
+        this.fs.copy(
+          path.join(this.templatePath(), 'extended', '_spriting.scss'),
+          path.join(this.destinationPath(), 'util/_spriting.scss')
+        );
+      }
       done();
     },
     util: function () {
       var done = this.async();
       this.fs.write(path.join(this.destinationPath(), 'util/__util.scss'), this.config.files.util);
-      this.config.files.core += this.fs.read(path.join(this.templatePath(),'import/core/util')) + '\n\n';
+      this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/util'));
       done();
     },
     typography: function () {
       var done = this.async();
-      if (!this.options.build.typography) return true;
-
-      this.config.files.core += this.fs.read(path.join(this.templatePath(),'import/core/typography')) + '\n\n';
-      this.fs.copy(
-        path.join(this.templatePath(), 'base', 'typography'),
-        path.join(this.destinationPath(), 'typography')
-      );
+      if (this.options.build.typography) {
+        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/typography'));
+        this.fs.copy(
+          path.join(this.templatePath(), 'base', 'typography'),
+          path.join(this.destinationPath(), 'typography')
+        );
+      }
+      done();
+    },
+    pages: function () {
+      var done = this.async();
+      if (this.options.build.pages) {
+        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/pages'));
+        mkdirp(path.join(this.destinationPath(), 'pages'));
+        this.fs.write(path.join(this.destinationPath(), 'pages/.gitkeep'), '');
+      }
       done();
     },
     layout: function () {
       var done = this.async(),
         from = this.options.build.layout ? 'extended' : 'base';
 
-      this.config.files.core += this.fs.read(path.join(this.templatePath(),'import/core/layout')) + '\n\n';
+      this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/layout'));
       this.fs.copy(
         path.join(this.templatePath(), from, 'layout'),
         path.join(this.destinationPath(), 'layout')
@@ -233,13 +249,13 @@ module.exports = yo.Base.extend({
     },
     helpers: function () {
       var done = this.async();
-      if (!this.options.build.helpers) return true;
-
-      this.config.files.core += this.fs.read(path.join(this.templatePath(),'import/core/helpers')) + '\n\n';
-      this.fs.copy(
-        path.join(this.templatePath(), 'extended/helpers'),
-        path.join(this.destinationPath(), 'helpers')
-      );
+      if (this.options.build.helpers) {
+        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/helpers'));
+        this.fs.copy(
+          path.join(this.templatePath(), 'extended/helpers'),
+          path.join(this.destinationPath(), 'helpers')
+        );
+      }
       done();
     },
     core: function() {
