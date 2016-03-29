@@ -2,6 +2,10 @@ const yo = require('yeoman-generator'),
   path = require('path'),
   mkdirp = require('mkdirp');
 
+// TODO: add yo-rc.json
+// TODO: refactor
+// TODO: add bootstrap's scss integration
+
 module.exports = yo.Base.extend({
   constructor: function () {
     yo.Base.apply(this, arguments);
