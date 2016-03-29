@@ -1,0 +1,11 @@
+@import 'variables/__variables';
+
+/**
+ * Vendor mixins library
+ * set path to the scss-mixins-collection here
+ */
+//@import 'mixins/__mixins';
+
+@import 'custom-mixins/__custom-mixins';
+
+@import 'sprite-set';
