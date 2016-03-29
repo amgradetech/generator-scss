@@ -178,8 +178,8 @@ module.exports = yo.Base.extend({
     },
     mixins: function () {
       var done = this.async();
+      this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(), 'import/util/variables'));
       if (this.options.build.mixins) {
-        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(), 'import/util/variables'));
         this.config.files.util += '\n' + '// Mixins library\n@import "' + this.options.mixinsPath + '";' + '\n';
       }
       done();
@@ -212,7 +212,7 @@ module.exports = yo.Base.extend({
     util: function () {
       var done = this.async();
       this.fs.write(path.join(this.destinationPath(), 'util/__util.scss'), this.config.files.util);
-      this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/util'));
+      this.config.files.core += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/util'));
       done();
     },
     typography: function () {
@@ -229,9 +229,9 @@ module.exports = yo.Base.extend({
     pages: function () {
       var done = this.async();
       if (this.options.build.pages) {
-        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/pages'));
+        this.config.files.core += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/pages'));
         mkdirp(path.join(this.destinationPath(), 'pages'));
-        this.fs.write(path.join(this.destinationPath(), 'pages/.gitkeep'), '');
+        this.fs.write(path.join(this.destinationPath(), 'pages/__pages.scss'), '// Sets import for pages scss files');
       }
       done();
     },
@@ -239,7 +239,7 @@ module.exports = yo.Base.extend({
       var done = this.async(),
         from = this.options.build.layout ? 'extended' : 'base';
 
-      this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/layout'));
+      this.config.files.core += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/layout'));
       this.fs.copy(
         path.join(this.templatePath(), from, 'layout'),
         path.join(this.destinationPath(), 'layout')
@@ -250,7 +250,7 @@ module.exports = yo.Base.extend({
     helpers: function () {
       var done = this.async();
       if (this.options.build.helpers) {
-        this.config.files.util += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/helpers'));
+        this.config.files.core += '\n' + this.fs.read(path.join(this.templatePath(),'import/core/helpers'));
         this.fs.copy(
           path.join(this.templatePath(), 'extended/helpers'),
           path.join(this.destinationPath(), 'helpers')
