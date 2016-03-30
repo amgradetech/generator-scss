@@ -185,7 +185,6 @@ module.exports = yo.Base.extend({
             },
             function (response) {
               this.options.mixinsPath = response.mixinsPath ? '../../' + response.mixinsPath : false || this.options.default.mixinsPath;
-              console.log(this.options.mixinsPath);
               done();
             }.bind(this)
           );
