@@ -17,7 +17,9 @@ module.exports = yo.Base.extend({
     this.options = {};
 
     this.options.default = {
-      mixinsPath: '../../../node_modules/scss-mixins-collection/mixins/__mixins.scss'
+      nodeModules: '../../../node_modules/',
+      mixinsPath: '../../../node_modules/scss-mixins-collection/mixins/__mixins.scss',
+      bootstrapPath: '../../node_modules/bootstrap/scss/'
     };
 
     this.destinationRoot('./scss');
@@ -32,9 +34,11 @@ module.exports = yo.Base.extend({
           vars: false,
           mixins: false,
           customMixins: false,
+          bootstrap: false,
           sprite: false
         },
         base: {
+          bootstrap: false,
           typography: true,
           pages: true,
           helpers: false,
@@ -45,6 +49,7 @@ module.exports = yo.Base.extend({
           sprite: false
         },
         full: {
+          bootstrap: true,
           typography: true,
           pages: true,
           helpers: true,
@@ -84,7 +89,7 @@ module.exports = yo.Base.extend({
       components: {
         type: 'checkbox',
         name: 'custom',
-        message: 'Choose custom components to load:',
+        message: 'Which components you would like to use?',
         choices: [
           {
             value: 'typography',
@@ -102,11 +107,11 @@ module.exports = yo.Base.extend({
           },
           {
             value: 'layout',
-            name: '- layout (extended)'
+            name: '- extended layout files'
           },
           {
             value: 'vars',
-            name: '- variables (extended)'
+            name: '- extended variables files'
           },
           {
             value: 'customMixins',
@@ -114,9 +119,34 @@ module.exports = yo.Base.extend({
           },
           {
             value: 'sprite',
-            name: '- sprite'
+            name: '- Compass spriting'
+          },
+          {
+            value: 'mixins',
+            name: '- scss-mixins-collection (library plug in)'
           }
         ]
+      },
+      bootstrapType: {
+        buildType: {
+          type: 'list',
+          name: 'bootstrapBuild',
+          message: 'Which bootstrap build do you need?',
+          choices: [
+            {
+              value: 'full',
+              name: '- Full'
+            },
+            {
+              value: 'flex',
+              name: '- Full with flex support'
+            },
+            {
+              value: 'grid',
+              name: '- Grid only'
+            }
+          ]
+        }
       }
     };
 
@@ -163,32 +193,52 @@ module.exports = yo.Base.extend({
         done();
       }
     },
-    mixinsLibrary: function () {
+    nodeModules: function () {
+      var done = this.async();
+      this.prompt(
+        {
+          type: 'input',
+          name: 'mixinsPath',
+          message: 'Relative path to the node_modules/ from this folder ( default: ' + this.options.default.nodeModules.substr(6) + ' ):'
+        },
+        function (response) {
+          this.options.mixinsPath = response.mixinsPath ? '../../' + response.mixinsPath : false || this.options.default.mixinsPath;
+          done();
+        }.bind(this)
+      );
+    },
+    bootstrapScss: function () {
       var done = this.async();
       this.prompt(
         {
           type: 'confirm',
-          name: 'mixinsLib',
-          message: 'Are you using scss-mixins-collection library?'
+          name: 'bootstrap',
+          message: 'Do you want to include bootstrap scss files?'
         },
         function (response) {
-          if (!response.mixinsLib) {
+          if (response.bootstrap) {
+            this.options.build.bootstrap = true;
+            this.prompt({
+                type: 'input',
+                name: 'bootstrapPath',
+                message: 'Please set relative path to the bootstrap/scss folder from this folder ( default: ' + this.options.default.bootstrapPath.substr(3) + ' ):'
+              },
+              function (response) {
+                if (response.bootstrapPath) {
+                  this.options.bootstrapPath = '../' + response.bootstrapPath;
+                  this.prompt(this.promptList.bootstrapType, function (response) {
+                      this.options.bootstrapBuild = response.bootstrapBuild;
+                      done();
+                    }.bind(this)
+                  );
+                } else {
+                  this.options.bootstrapPath = this.options.default.bootstrapPath;
+                  done();
+                }
+              }.bind(this));
+          } else {
             done();
-            return true;
           }
-          this.options.build.mixins = true;
-          this.prompt(
-            {
-              type: 'input',
-              name: 'mixinsPath',
-              message: 'Relative path to the _mixins.scss file from this folder ( default: ' + this.options.default.mixinsPath.substr(6) + ' ):'
-            },
-            function (response) {
-              this.options.mixinsPath = response.mixinsPath ? '../../' + response.mixinsPath : false || this.options.default.mixinsPath;
-              done();
-            }.bind(this)
-          );
-
         }.bind(this)
       );
     }
@@ -290,6 +340,7 @@ module.exports = yo.Base.extend({
   },
 
   end: function () {
+    console.log(this.options);
     console.log('*** Happy styling indeed! ***');
   }
 
