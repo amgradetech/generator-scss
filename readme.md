@@ -1,5 +1,17 @@
 # GENERATOR-SCSSFOLD
-SCSS scaffold
+
+[Yeoman](http://yeoman.io/) generator which scaffolds your SCSS files. 
+  
+## INSTALLIATION & USE  
+  
+Install it via npm:  
+```  
+npm i -g generator-scssfold  
+```
+and then use it like any other yeoman generator: 
+```
+yo scssfold
+```
   
 ## WHATS INSIDE
 ```
