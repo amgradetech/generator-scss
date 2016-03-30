@@ -1,9 +1,14 @@
 const yo = require('yeoman-generator'),
   path = require('path'),
-  mkdirp = require('mkdirp');
+  mkdirp = require('mkdirp'),
+  _forEach = require('lodash').forEach,
+  del = require('del'),
+
+  _replaceAll = function(str, from, to) {
+    return str.replace(new RegExp(from, 'g'), to);
+  };
 
 // TODO: add yo-rc.json
-// TODO: add bootstrap's scss integration
 
 module.exports = yo.Base.extend({
 
@@ -12,14 +17,38 @@ module.exports = yo.Base.extend({
   },
 
   initializing: function () {
+
+    var _this = this;
+    var done = this.async();
+
+    this.prompt({
+      type: 'confirm',
+      name: 'removeFolder',
+      message: 'This action will remove everything withing ./scss folder and build it from scratch. Proceed?'
+    }, function(response){
+      if (!response.removeFolder) return false;
+      del.sync('./scss');
+      done();
+    });
+
     this.pkg = require('../package.json');
 
     this.options = {};
 
     this.options.default = {
-      nodeModules: '../../../node_modules/',
-      mixinsPath: '../../../node_modules/scss-mixins-collection/mixins/__mixins.scss',
-      bootstrapPath: '../../node_modules/bootstrap/scss/'
+      // Relative from appFolder
+      nodeModulesPath: '../node_modules/',
+      mixinsScssPath: 'scss-mixins-collection/mixins/__mixins.scss',
+      bootstrapScssPath: 'bootstrap/scss',
+      config: {
+        cssDir: './css',
+        sassDir: './scss',
+        fontsDir: './fonts',
+        imagesDir: './images',
+        lineComments: false,
+        outputStyle: ':nested',
+        relativeAssets: false
+      }
     };
 
     this.destinationRoot('./scss');
@@ -63,72 +92,69 @@ module.exports = yo.Base.extend({
       files: {
         util: '',
         core: ''
-      }
-    };
-
-    this.promptList = {
-      buildType: {
-        type: 'list',
-        name: 'build',
-        message: 'Choose scaffolds type:',
-        choices: [
-          {
-            value: 'base',
-            name: '- Base'
-          },
-          {
-            value: 'full',
-            name: '- Full'
-          },
-          {
-            value: 'custom',
-            name: '- Custom'
-          }
-        ]
       },
-      components: {
-        type: 'checkbox',
-        name: 'custom',
-        message: 'Which components you would like to use?',
-        choices: [
-          {
-            value: 'typography',
-            checked: true,
-            name: '- typography'
-          },
-          {
-            value: 'pages',
-            name: '- pages',
-            checked: true
-          },
-          {
-            value: 'helpers',
-            name: '- helpers'
-          },
-          {
-            value: 'layout',
-            name: '- extended layout files'
-          },
-          {
-            value: 'vars',
-            name: '- extended variables files'
-          },
-          {
-            value: 'customMixins',
-            name: '- custom-mixins'
-          },
-          {
-            value: 'sprite',
-            name: '- Compass spriting'
-          },
-          {
-            value: 'mixins',
-            name: '- scss-mixins-collection (library plug in)'
-          }
-        ]
-      },
-      bootstrapType: {
+      promptList: {
         buildType: {
+          type: 'list',
+          name: 'build',
+          message: 'Choose scaffolds type:',
+          choices: [
+            {
+              value: 'base',
+              name: '- Base'
+            },
+            {
+              value: 'full',
+              name: '- Full'
+            },
+            {
+              value: 'custom',
+              name: '- Custom'
+            }
+          ]
+        },
+        components: {
+          type: 'checkbox',
+          name: 'custom',
+          message: 'Which components you would like to use?',
+          choices: [
+            {
+              value: 'typography',
+              checked: true,
+              name: '- typography'
+            },
+            {
+              value: 'pages',
+              name: '- pages',
+              checked: true
+            },
+            {
+              value: 'helpers',
+              name: '- helpers'
+            },
+            {
+              value: 'layout',
+              name: '- extended layout files'
+            },
+            {
+              value: 'vars',
+              name: '- extended variables files'
+            },
+            {
+              value: 'customMixins',
+              name: '- custom-mixins'
+            },
+            {
+              value: 'sprite',
+              name: '- Compass spriting'
+            },
+            {
+              value: 'mixins',
+              name: '- scss-mixins-collection (library plug in)'
+            }
+          ]
+        },
+        bootstrapType: {
           type: 'list',
           name: 'bootstrapBuild',
           message: 'Which bootstrap build do you need?',
@@ -138,15 +164,45 @@ module.exports = yo.Base.extend({
               name: '- Full'
             },
             {
-              value: 'flex',
-              name: '- Full with flex support'
+              value: 'fullFlex',
+              name: '- Full (flex support)'
             },
             {
               value: 'grid',
               name: '- Grid only'
+            },
+            {
+              value: 'gridFlex',
+              name: '- Grid only (flex support)'
+            },
+            {
+              value: 'reboot',
+              name: '- Reboot only'
             }
           ]
         }
+
+      },
+      bootstrapBuild: {
+        full: function () {
+          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap', { bootstrapScssPath: _this.options.bootstrapScssPath }));
+        }.bind(_this),
+        fullFlex: function () {
+          var content = this.fsRead('bootstrap/bootstrap-flex') + '\n';
+          content += this.fsTpl('bootstrap/bootstrap', { bootstrapScssPath: _this.options.bootstrapScssPath });
+          this.fsWrite('bootstrap.scss', content);
+        }.bind(_this),
+        grid: function () {
+          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap-grid', { bootstrapScssPath: _this.options.bootstrapScssPath }));
+        }.bind(_this),
+        gridFlex: function () {
+          var content = this.fsRead('bootstrap/bootstrap-flex') + '\n';
+          content += this.fsTpl('bootstrap/bootstrap-grid', { bootstrapScssPath: _this.options.bootstrapScssPath });
+          this.fsWrite('bootstrap.scss', content);
+        }.bind(_this),
+        reboot: function () {
+          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap-reboot', { bootstrapScssPath: _this.options.bootstrapScssPath }));
+        }.bind(_this)
       }
     };
 
@@ -157,11 +213,22 @@ module.exports = yo.Base.extend({
         path.join(this.destinationPath(), to)
       );
     }.bind(this);
+    // Custom templating
+    this.fsTpl = function(from, templateVars) {
+      var content = this.fsRead(from);
+      _forEach(templateVars, function(value, key){
+        content = _replaceAll(content, '{% '+key+' %}', value);
+      });
+      return content;
+    }.bind(this);
     this.fsWrite = function (to, string) {
       this.fs.write(path.join(this.destinationPath(), to), string);
     }.bind(this);
     this.fsRead = function (from) {
       return this.fs.read(path.join(this.templatePath(), from));
+    }.bind(this);
+    this.configPrompting = function(){
+      this.prompt({type: 'input', name: 'config', message: 'css_dir ( default:'+this.options.default.config.cssDir +' ):' }, function(response){if(response.config)});
     }.bind(this);
   },
 
@@ -169,7 +236,7 @@ module.exports = yo.Base.extend({
     build: function () {
       var done = this.async();
 
-      this.prompt(this.promptList.buildType,
+      this.prompt(this.config.promptList.buildType,
         function (response) {
           this.options.build = this.config.build[response.build];
           if (response.build === 'custom') this.options.custom = true;
@@ -181,7 +248,7 @@ module.exports = yo.Base.extend({
       var done = this.async();
 
       if (this.options.custom) {
-        this.prompt(this.promptList.components,
+        this.prompt(this.config.promptList.components,
           function (response) {
             response.custom.forEach(function (opt) {
               this.options.build[opt] = true;
@@ -195,17 +262,25 @@ module.exports = yo.Base.extend({
     },
     nodeModules: function () {
       var done = this.async();
-      this.prompt(
-        {
-          type: 'input',
-          name: 'mixinsPath',
-          message: 'Relative path to the node_modules/ from this folder ( default: ' + this.options.default.nodeModules.substr(6) + ' ):'
-        },
-        function (response) {
-          this.options.mixinsPath = response.mixinsPath ? '../../' + response.mixinsPath : false || this.options.default.mixinsPath;
-          done();
-        }.bind(this)
-      );
+      if (this.options.build.mixins) {
+        this.prompt(
+          {
+            type: 'input',
+            name: 'nodeModulesPath',
+            message: 'Set relative path to the node_modules/ from this folder ( default: ' + this.options.default.nodeModulesPath + ' ):'
+          },
+          function (response) {
+            this.options.nodeModulesPath = response.nodeModulesPath ? response.nodeModulesPath : false || this.options.default.nodeModulesPath;
+            this.options.mixinsScssPath = '../../' + path.join(this.options.nodeModulesPath, this.options.default.mixinsScssPath);
+            this.options.bootstrapScssPath = '../' + path.join(this.options.nodeModulesPath, this.options.default.bootstrapScssPath);
+            done();
+          }.bind(this)
+        );
+      } else {
+        this.options.mixinsScssPath = '../../' + path.join(this.options.default.nodeModulesPath, this.options.default.mixinsScssPath);
+        this.options.bootstrapScssPath = '../' + path.join(this.options.default.nodeModulesPath, this.options.default.bootstrapScssPath);
+        done();
+      }
     },
     bootstrapScss: function () {
       var done = this.async();
@@ -213,7 +288,7 @@ module.exports = yo.Base.extend({
         {
           type: 'confirm',
           name: 'bootstrap',
-          message: 'Do you want to include bootstrap scss files?'
+          message: 'Do you want to include Bootstrap\'s@^4.0 scss files?'
         },
         function (response) {
           if (response.bootstrap) {
@@ -221,26 +296,37 @@ module.exports = yo.Base.extend({
             this.prompt({
                 type: 'input',
                 name: 'bootstrapPath',
-                message: 'Please set relative path to the bootstrap/scss folder from this folder ( default: ' + this.options.default.bootstrapPath.substr(3) + ' ):'
+                message: 'Set relative path to the bootstrap/scss folder from this folder ( default: ' + path.join(this.options.default.nodeModulesPath, this.options.default.bootstrapScssPath) + ' ):'
               },
               function (response) {
                 if (response.bootstrapPath) {
                   this.options.bootstrapPath = '../' + response.bootstrapPath;
-                  this.prompt(this.promptList.bootstrapType, function (response) {
-                      this.options.bootstrapBuild = response.bootstrapBuild;
-                      done();
-                    }.bind(this)
-                  );
-                } else {
-                  this.options.bootstrapPath = this.options.default.bootstrapPath;
-                  done();
                 }
+                this.prompt(this.config.promptList.bootstrapType, function (response) {
+                  this.options.bootstrapBuild = response.bootstrapBuild;
+                  done();
+                }.bind(this));
               }.bind(this));
           } else {
             done();
           }
         }.bind(this)
       );
+    },
+    configRb: function() {
+      var done = this.async();
+      this.prompt({
+        type: 'confirm',
+        name: 'config',
+        message: 'Would you like to setup config.rb?'
+      }, function(response){
+        if (response.config) {
+          this.configPrompt();
+        } else {
+          done();
+        }
+      }.bind(this));
+
     }
   },
 
@@ -261,7 +347,7 @@ module.exports = yo.Base.extend({
       this.config.files.util += '\n' + this.fsRead('import/util/variables');
 
       if (this.options.build.mixins) {
-        this.config.files.util += '\n' + '// Mixins library\n@import "' + this.options.mixinsPath + '";' + '\n';
+        this.config.files.util += '\n' + '// Mixins library\n@import "' + this.options.mixinsScssPath + '";' + '\n';
       }
 
       done();
@@ -335,7 +421,22 @@ module.exports = yo.Base.extend({
       done();
     },
     config: function () {
-      this.fsCopy('config.rb', 'config.rb');
+      var done = this.async();
+      this.fsCopy('config.rb', '../config.rb');
+      done();
+    },
+    bootstrap: function () {
+      var done = this.async();
+      if (this.options.build.bootstrap) {
+        if (!/grid/.test(this.options.bootstrapBuild)) {
+          mkdirp.sync(path.join(this.destinationPath(), 'bootstrap'));
+          this.fsWrite('bootstrap/_variables-override.scss', '// Set Bootstrap\'s variables overrides here\n');
+        }
+        this.config.bootstrapBuild[this.options.bootstrapBuild]();
+      }
+
+      done();
+
     }
   },
 
