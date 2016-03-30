@@ -251,7 +251,7 @@ module.exports = yo.Base.extend({
 
       mkdirp.sync(path.join(this.destinationPath(), 'util/'));
 
-      this.fsCopy(from, path.join(this.destinationPath(), 'util/variables'));
+      this.fsCopy(from, 'util/variables');
 
       done();
     },
@@ -283,7 +283,7 @@ module.exports = yo.Base.extend({
       if (this.options.build.sprite) {
 
         this.config.files.util += '\n' + this.fsRead('import/util/spriting');
-        this.fsCopy('extended', '_spriting.scss', 'util/_spriting.scss');
+        this.fsCopy('extended/_spriting.scss', 'util/_spriting.scss');
 
       }
 
@@ -340,7 +340,6 @@ module.exports = yo.Base.extend({
   },
 
   end: function () {
-    console.log(this.options);
     console.log('*** Happy styling indeed! ***');
   }
 
