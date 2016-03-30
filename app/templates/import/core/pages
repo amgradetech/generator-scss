@@ -1,2 +1,2 @@
 // scss files for separate page
-@import "pages/__pages.scss";
+@import "pages/__pages";
