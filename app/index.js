@@ -3,12 +3,13 @@ const yo = require('yeoman-generator'),
   mkdirp = require('mkdirp'),
   _forEach = require('lodash').forEach,
   del = require('del'),
+  Separator = require('./utils/promptSeparator'),
 
   _replaceAll = function (str, from, to) {
     return str.replace(new RegExp(from, 'g'), to);
   };
 
-var components = [
+var libComponents = [
   'bootstrap',
   'config',
   'customMixins',
@@ -18,12 +19,12 @@ var components = [
   'pages',
   'sprite',
   'typography',
-  'vars'
+  'variables'
 ];
 
 var Build = function (arr) {
   const toBuildComponents = Array.isArray(arr) ? arr : [];
-  components.map(function (el) {
+  libComponents.map(function (el) {
     this[el] = toBuildComponents.indexOf(el) >= 0;
   }.bind(this));
 };
@@ -56,9 +57,8 @@ module.exports = yo.Base.extend({
     this.default.path = {
       // Relative from appFolder
       destinationPath: './scss',
-      nodeModulesPath: '../node_modules/',
-      mixinsScssPath: 'scss-mixins-collection/mixins/__mixins.scss',
-      bootstrapScssPath: 'bootstrap/scss'
+      scssMixinsPath: '../node_modules/scss-mixins-collection/mixins/__mixins.scss',
+      bootstrapScssPath: '../node_modules/bootstrap/scss'
     };
 
     this.default.config = {
@@ -75,10 +75,12 @@ module.exports = yo.Base.extend({
 
     this.components = {};
 
+    this.path = {};
+
     this.prompts = {
       buildType: {
         type: 'list',
-        name: 'build',
+        name: 'buildType',
         message: 'Choose scaffolds type:',
         choices: [
           {
@@ -97,9 +99,10 @@ module.exports = yo.Base.extend({
       },
       components: {
         type: 'checkbox',
-        name: 'custom',
+        name: 'components',
         message: 'Which components you would like to use?',
         choices: [
+          new Separator(),
           {
             value: 'typography',
             checked: true,
@@ -116,11 +119,13 @@ module.exports = yo.Base.extend({
           },
           {
             value: 'layout',
-            name: '- extended layout files'
+            name: '- layout files',
+            checked: true
           },
           {
-            value: 'vars',
-            name: '- extended variables files'
+            value: 'variables',
+            name: '- variables files',
+            checked: true
           },
           {
             value: 'customMixins',
@@ -131,10 +136,28 @@ module.exports = yo.Base.extend({
             name: '- Compass spriting'
           },
           {
+            value: 'bootstrap',
+            name: '- bootstrap@^4.0 scss files'
+          },
+          {
             value: 'mixins',
             name: '- scss-mixins-collection (library plug in)'
+          },
+          {
+            value: 'config',
+            name: '- config.rb (Compass config file)'
           }
         ]
+      },
+      scssMixinsPath: {
+        type: 'input',
+        name: 'scssMixinsPath',
+        message: 'Set relative path to the _mixins.scss from this folder ( default: ' + this.default.path.scssMixinsPath + ' ):'
+      },
+      bootstrapScssPath: {
+        type: 'input',
+        name: 'bootstrapScssPath',
+        message: 'Set relative path to the bootstrap/scss folder from this folder ( default: ' + this.default.path.bootstrapScssPath + ' ):'
       },
       bootstrapType: {
         type: 'list',
@@ -163,74 +186,70 @@ module.exports = yo.Base.extend({
           }
         ]
       },
-      config: function(){
-        this.prompt([
-          {
-            type: 'input',
-            name: 'cssDir',
-            message: 'css_dir ( default: '+ _this.default.config.cssDir + ' ):',
-            default: function() {
-              return _this.default.config.cssDir
-            }
-          },
-          {
-            type: 'input',
-            name: 'sassDir',
-            message: 'sass_dir ( default: '+ _this.default.config.sassDir + ' ):',
-            default: function() {
-              return _this.default.config.sassDir
-            }
-          },
-          {
-            type: 'input',
-            name: 'imagesDir',
-            message: 'images_dir ( default: '+ _this.default.config.imagesDir + ' ):',
-            default: function() {
-              return _this.default.config.imagesDir
-            }
-          },
-          {
-            type: 'input',
-            name: 'fontsDir',
-            message: 'fonts_dir ( default: '+ _this.default.config.fontsDir + ' ):',
-            default: function() {
-              return _this.default.config.fontsDir
-            }
-          },
-          {
-            type: 'list',
-            name: 'outputStyle',
-            message: 'output_style ( default: '+ _this.default.config.outputStyle + ' ):',
-            choices: [
-              ':expanded',
-              ':nested',
-              ':compact',
-              ':compressed'
-            ],
-            default: function() {
-              return _this.default.config.outputStyle
-            }
-          },
-          {
-            type: 'confirm',
-            name: 'lineComments',
-            message: 'Enable line_comments?:',
-            default: function() {
-              return _this.default.config.lineComments
-            }
-          },
-          {
-            type: 'confirm',
-            name: 'relativeAssets',
-            message: 'Enable relative_assets?',
-            default: function() {
-              return _this.default.config.relativeAssets
-            }
+      config: [
+        {
+          type: 'input',
+          name: 'cssDir',
+          message: 'css_dir',
+          default: function() {
+            return _this.default.config.cssDir
           }
-        ], function(response){
-
-        });
-      }.bind(_this)
+        },
+        {
+          type: 'input',
+          name: 'sassDir',
+          message: 'sass_dir',
+          default: function() {
+            return _this.default.config.sassDir
+          }
+        },
+        {
+          type: 'input',
+          name: 'imagesDir',
+          message: 'images_dir',
+          default: function() {
+            return _this.default.config.imagesDir
+          }
+        },
+        {
+          type: 'input',
+          name: 'fontsDir',
+          message: 'fonts_dir',
+          default: function() {
+            return _this.default.config.fontsDir
+          }
+        },
+        {
+          type: 'list',
+          name: 'outputStyle',
+          message: 'output_style',
+          choices: [
+            ':expanded',
+            ':nested',
+            ':compact',
+            ':compressed'
+          ],
+          default: function() {
+            return _this.default.config.outputStyle
+          }
+        },
+        {
+          type: 'confirm',
+          name: 'lineComments',
+          message: 'Enable line_comments?:',
+          default: function() {
+            return _this.default.config.lineComments
+          }
+        },
+        {
+          type: 'confirm',
+          name: 'relativeAssets',
+          message: 'Enable relative_assets?',
+          default: function() {
+            return _this.default.config.relativeAssets
+          }
+        }
+      ]
     };
 
     this.writes = {
@@ -287,97 +306,82 @@ module.exports = yo.Base.extend({
       var done = this.async();
       this.prompt(this.prompts.buildType,
         function (response) {
-          this.buildType = response.build;
-          this.build = this.default.build[response.build];
-          done();
+          if (response.buildType === 'custom') {
+            this.prompt(this.prompts.components,
+              function (response) {
+                response.components.forEach(function (component) {
+                  this.build.push(component);
+                }.bind(this));
+                done();
+              }.bind(this)
+            );
+          } else if (response.buildType === 'base') {
+            this.build = [
+              'typography',
+              'layout',
+              'variables',
+              'mixins'
+            ];
+            done();
+          } else {
+            this.build = libComponents;
+            done();
+          }
         }.bind(this)
       );
     },
-    custom: function () {
+    paths: function () {
       var done = this.async();
-      if (this.buildType === 'custom') {
-        this.prompt(this.prompts.components,
-          function (response) {
-            response.custom.forEach(function (opt) {
-              this.build[opt] = true;
-            }.bind(this));
-            done();
-          }.bind(this)
-        );
-      } else {
-        done();
+      var prompts = [];
+      if (this.build.indexOf('mixins') >= 0) {
+        prompts.push(this.prompts.scssMixinsPath);
       }
-    },
-    nodeModules: function () {
-      var done = this.async();
-      if (this.build.mixins) {
-        this.prompt(
-          {
-            type: 'input',
-            name: 'nodeModulesPath',
-            message: 'Set relative path to the node_modules/ from this folder ( default: ' + this.options.default.nodeModulesPath + ' ):'
-          },
-          function (response) {
-            this.options.path.nodeModulesPath = response.nodeModulesPath ? response.nodeModulesPath : false || this.default.path.nodeModulesPath;
-            this.options.path.mixinsScssPath = '../../' + path.join(this.options.path.nodeModulesPath, this.default.path.mixinsScssPath);
-            this.options.path.bootstrapScssPath = '../' + path.join(this.options.path.nodeModulesPath, this.default.path.bootstrapScssPath);
-            done();
-          }.bind(this)
-        );
-      } else {
-        this.options.mixinsScssPath = '../../' + path.join(this.default.path.nodeModulesPath, this.default.path.mixinsScssPath);
-        this.options.bootstrapScssPath = '../' + path.join(this.default.path.nodeModulesPath, this.default.path.bootstrapScssPath);
-        done();
+      if (this.build.indexOf('bootstrap') >= 0) {
+        prompts.push(this.prompts.bootstrapScssPath);
+        prompts.push(this.prompts.bootstrapType);
       }
-    },
-    bootstrapScss: function () {
-      var done = this.async();
-      this.prompt(
-        {
-          type: 'confirm',
-          name: 'bootstrap',
-          message: 'Do you want to include Bootstrap\'s@^4.0 scss files?'
-        },
-        function (response) {
-          if (response.bootstrap) {
-            this.build.bootstrap = true;
-            this.prompt({
-                type: 'input',
-                name: 'bootstrapPath',
-                message: 'Set relative path to the bootstrap/scss folder from this folder ( default: ' + path.join(this.options.default.nodeModulesPath, this.options.default.bootstrapScssPath) + ' ):'
-              },
-              function (response) {
-                if (response.bootstrapPath) {
-                  this.options.bootstrapPath = '../' + response.bootstrapPath;
-                }
-                this.prompt(this.prompts.bootstrapType, function (response) {
-                  this.options.bootstrapBuild = response.bootstrapBuild;
-                  done();
-                }.bind(this));
-              }.bind(this));
-          } else {
-            done();
+      this.prompt(prompts, function (response) {
+        if (this.build.indexOf('mixins')) {
+          this.path.scssMixinsPath = response.scssMixinsPath || this.default.path.scssMixinsPath;
+        }
+        if (this.build.indexOf('bootstrap') >= 0) {
+          this.bootstrapScssPath = response.bootstrapScssPath || this.default.path.bootstrapScssPath;
+          this.components.bootstrap = {
+            bootstrapType: response.bootstrapType || null
           }
+        }
+        done();
         }.bind(this)
       );
     },
     configRb: function () {
       var done = this.async();
-      this.prompt({
-          type: 'confirm',
-          name: 'config',
-          message: 'Would you like to setup config.rb?'
-        }, function (response) {
-          if (response.config) {
-            this.prompts.config();
-          }
+      if (this.build.indexOf('config')) {
+        this.prompt(this.prompts.config, function(response){
+          this.components.config = {
+            cssDir: response.cssDir,
+            sassDir: response.sassDir,
+            imagesDir: response.imagesDir,
+            fontsDir: response.fontsDir,
+            outputStyle: response.outputStyle,
+            lineComments: response.lineComments,
+            relativeAssets: response.relativeAssets
+          };
           done();
-        }.bind(this)
-      );
-
+        }.bind(this));
+      } else {
+        done();
+      }
     },
     setBuild: function () {
-      this.config.set({build: new Build(this.build)});
+      this.conf = {
+        components: this.components,
+        build: new Build(this.build),
+        path: this.path
+      };
+      this.config.set(this.conf);
+      console.log(this.config);
+      console.log(this.conf);
     }
   },
 
