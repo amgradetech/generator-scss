@@ -3,12 +3,15 @@ const yo = require('yeoman-generator'),
   mkdirp = require('mkdirp'),
   _forEach = require('lodash').forEach,
   del = require('del'),
+  fs = require('fs'),
+  readdir = fs.readdirSync,
   Separator = require('./utils/promptSeparator'),
 
   _replaceAll = function (str, from, to) {
     return str.replace(new RegExp(from, 'g'), to);
   };
 
+// Array of avaiable components
 var libComponents = [
   'bootstrap',
   'config',
@@ -16,20 +19,37 @@ var libComponents = [
   'helpers',
   'layout',
   'mixins',
+  'normalize',
   'pages',
   'sprite',
   'typography',
   'variables'
 ];
 
-var Build = function (arr) {
-  const toBuildComponents = Array.isArray(arr) ? arr : [];
+/**
+ * Compose config object for components which have to be build.
+ * @param {Array}  arr - components from prompt
+ * @param {Object} build - components from .yo-rc.json if exists
+ * @constructor - components build config
+ */
+var Build = function (arr, build) {
+  const toBuildComponents = Array.isArray(arr) ? arr : [],
+    buildObj = !!build ? build : {};
+
   libComponents.map(function (el) {
-    this[el] = toBuildComponents.indexOf(el) >= 0;
+    this[el] = arrayHasStr(toBuildComponents, el) || !!buildObj[el];
   }.bind(this));
 };
 
-// TODO: add yo-rc.json
+/**
+ * Define if array has at least one occurence of needed string
+ * @param arr - array to search in
+ * @param str - string to search
+ */
+var arrayHasStr = function (arr, str) {
+  return arr.indexOf(str) >= 0;
+};
+
 
 module.exports = yo.Base.extend({
 
@@ -41,16 +61,6 @@ module.exports = yo.Base.extend({
 
     var _this = this;
     var done = this.async();
-
-    this.prompt({
-      type: 'confirm',
-      name: 'removeFolder',
-      message: 'This action will remove everything withing ./scss folder and build it from scratch. Proceed?'
-    }, function (response) {
-      if (!response.removeFolder) return false;
-      del.sync('./scss');
-      done();
-    });
 
     this.default = {};
 
@@ -71,11 +81,13 @@ module.exports = yo.Base.extend({
       relativeAssets: true
     };
 
-    this.build = [];
+    this.buildArray = [];
+    this.build = this.config.get('build') || new Build(this.buildArray);
 
-    this.components = {};
+    console.log(this.build);
 
-    this.path = {};
+    this.components = this.config.get('components') || {};
+    this.paths = this.config.get('paths') || {};
 
     this.prompts = {
       buildType: {
@@ -105,49 +117,65 @@ module.exports = yo.Base.extend({
           new Separator(),
           {
             value: 'typography',
-            checked: true,
+            checked: this.build.typography,
             name: '- typography'
           },
           {
             value: 'pages',
-            name: '- pages',
-            checked: true
+            checked: this.build.pages,
+            name: '- pages'
           },
           {
             value: 'helpers',
+            checked: this.build.helpers,
             name: '- helpers'
           },
           {
             value: 'layout',
-            name: '- layout files',
-            checked: true
+            checked: this.build.layout,
+            name: '- layout files'
           },
           {
             value: 'variables',
-            name: '- variables files',
-            checked: true
+            checked: this.build.variables,
+            name: '- variables files'
           },
           {
             value: 'customMixins',
+            checked: this.build.customMixins,
             name: '- custom-mixins'
           },
           {
             value: 'sprite',
+            checked: this.build.sprite,
             name: '- Compass spriting'
           },
           {
+            value: 'normalize',
+            checked: this.build.normalize,
+            name: '- bootstrap\'s normalize.css'
+          },
+          {
             value: 'bootstrap',
+            checked: this.build.bootstrap,
             name: '- bootstrap@^4.0 scss files'
           },
           {
             value: 'mixins',
+            checked: this.build.mixins,
             name: '- scss-mixins-collection (library plug in)'
           },
           {
             value: 'config',
+            checked: this.build.config,
             name: '- config.rb (Compass config file)'
           }
         ]
+      },
+      extendedFiles: {
+        type: 'confirm',
+        name: 'extendedFiles',
+        message: 'Do you need premade content for layout and variables files?'
       },
       scssMixinsPath: {
         type: 'input',
@@ -161,7 +189,7 @@ module.exports = yo.Base.extend({
       },
       bootstrapType: {
         type: 'list',
-        name: 'bootstrapBuild',
+        name: 'bootstrapType',
         message: 'Which bootstrap build do you need?',
         choices: [
           {
@@ -191,7 +219,7 @@ module.exports = yo.Base.extend({
           type: 'input',
           name: 'cssDir',
           message: 'css_dir',
-          default: function() {
+          default: function () {
             return _this.default.config.cssDir
           }
         },
@@ -199,7 +227,7 @@ module.exports = yo.Base.extend({
           type: 'input',
           name: 'sassDir',
           message: 'sass_dir',
-          default: function() {
+          default: function () {
             return _this.default.config.sassDir
           }
         },
@@ -207,7 +235,7 @@ module.exports = yo.Base.extend({
           type: 'input',
           name: 'imagesDir',
           message: 'images_dir',
-          default: function() {
+          default: function () {
             return _this.default.config.imagesDir
           }
         },
@@ -215,7 +243,7 @@ module.exports = yo.Base.extend({
           type: 'input',
           name: 'fontsDir',
           message: 'fonts_dir',
-          default: function() {
+          default: function () {
             return _this.default.config.fontsDir
           }
         },
@@ -229,7 +257,7 @@ module.exports = yo.Base.extend({
             ':compact',
             ':compressed'
           ],
-          default: function() {
+          default: function () {
             return _this.default.config.outputStyle
           }
         },
@@ -237,7 +265,7 @@ module.exports = yo.Base.extend({
           type: 'confirm',
           name: 'lineComments',
           message: 'Enable line_comments?:',
-          default: function() {
+          default: function () {
             return _this.default.config.lineComments
           }
         },
@@ -245,7 +273,7 @@ module.exports = yo.Base.extend({
           type: 'confirm',
           name: 'relativeAssets',
           message: 'Enable relative_assets?',
-          default: function() {
+          default: function () {
             return _this.default.config.relativeAssets
           }
         }
@@ -276,8 +304,33 @@ module.exports = yo.Base.extend({
       }
     };
 
-    this.destinationRoot(this.default.path.destinationPath);
+    // TODO: add support for prompting destinationPath
+    this.destinationPath(this.default.path.destinationPath);
 
+    done();
+    //try {
+    //  console.log(fs.realpathSync('./scss', function (err) {
+    //    console.log('readdir cb', err);
+    //  }));
+    //} catch(err) {
+    //  console.log(err);
+    //  done();
+    //}
+
+    /*this.prompt({
+     type: 'confirm',
+     name: 'removeFolder',
+     message: 'This action will remove everything withing ./scss folder and build it from scratch. Proceed?'
+     }, function (response) {
+     if (!response.removeFolder) return false;
+     del.sync('./scss');
+     done();
+     });*/
+
+    // Wrapper for arrayHasStr();
+    this.buildArrayHasStr = function (str) {
+      return arrayHasStr(_this.buildArray, str);
+    };
     // Wrappers for fs functions
     this.fsCopy = function (from, to) {
       this.fs.copy(
@@ -285,20 +338,26 @@ module.exports = yo.Base.extend({
         path.join(this.destinationPath(), to)
       );
     }.bind(this);
-    // Custom templating
-    this.fsTpl = function (from, templateVars) {
-      var content = this.fsRead(from);
-      _forEach(templateVars, function (value, key) {
-        content = _replaceAll(content, '{% ' + key + ' %}', value);
-      });
-      return content;
-    }.bind(this);
     this.fsWrite = function (to, string) {
       this.fs.write(path.join(this.destinationPath(), to), string);
     }.bind(this);
     this.fsRead = function (from) {
       return this.fs.read(path.join(this.templatePath(), from));
     }.bind(this);
+    /**
+     * Custom templating
+     * @param {String} from - path to template file
+     * @param {Object} placeholders - set of placeholders-strings pairs to replace in template body
+     * @return {String} - content with replaced placeholders
+     */
+    this.fsTpl = function (from, placeholders) {
+      var content = this.fsRead(from);
+      _forEach(placeholders, function (value, key) {
+        content = _replaceAll(content, '{% ' + key + ' %}', value);
+      });
+      return content;
+    }.bind(this);
+
   },
 
   prompting: {
@@ -310,13 +369,17 @@ module.exports = yo.Base.extend({
             this.prompt(this.prompts.components,
               function (response) {
                 response.components.forEach(function (component) {
-                  this.build.push(component);
+                  this.buildArray.push(component);
                 }.bind(this));
+                // Compass spriting require compass config to be set
+                if (this.buildArrayHasStr('sprite') && !this.buildArrayHasStr('config')) {
+                  this.buildArray.push('config');
+                }
                 done();
               }.bind(this)
             );
           } else if (response.buildType === 'base') {
-            this.build = [
+            this.buildArray = [
               'typography',
               'layout',
               'variables',
@@ -324,7 +387,7 @@ module.exports = yo.Base.extend({
             ];
             done();
           } else {
-            this.build = libComponents;
+            this.buildArray = libComponents;
             done();
           }
         }.bind(this)
@@ -333,31 +396,35 @@ module.exports = yo.Base.extend({
     paths: function () {
       var done = this.async();
       var prompts = [];
-      if (this.build.indexOf('mixins') >= 0) {
+
+      if (this.buildArrayHasStr('layout') && this.buildArrayHasStr('variables')) {
+        prompts.push(this.prompts.extendedFiles);
+      }
+      if (this.buildArrayHasStr('mixins')) {
         prompts.push(this.prompts.scssMixinsPath);
       }
-      if (this.build.indexOf('bootstrap') >= 0) {
+      if (this.buildArrayHasStr('bootstrap')) {
         prompts.push(this.prompts.bootstrapScssPath);
         prompts.push(this.prompts.bootstrapType);
       }
-      this.prompt(prompts, function (response) {
-        if (this.build.indexOf('mixins')) {
-          this.path.scssMixinsPath = response.scssMixinsPath || this.default.path.scssMixinsPath;
-        }
-        if (this.build.indexOf('bootstrap') >= 0) {
-          this.bootstrapScssPath = response.bootstrapScssPath || this.default.path.bootstrapScssPath;
+      if (prompts.length) {
+        this.prompt(prompts, function (response) {
+          this.components.extended = !!response.extendedFiles;
+          this.paths.scssMixinsPath = response.scssMixinsPath || '';
+          this.paths.bootstrapScssPath = response.bootstrapScssPath || '';
           this.components.bootstrap = {
-            bootstrapType: response.bootstrapType || null
-          }
-        }
+            bootstrapType: response.bootstrapType || 'none'
+          };
+          done();
+        }.bind(this))
+      } else {
         done();
-        }.bind(this)
-      );
+      }
     },
     configRb: function () {
       var done = this.async();
-      if (this.build.indexOf('config')) {
-        this.prompt(this.prompts.config, function(response){
+      if (this.buildArrayHasStr('config')) {
+        this.prompt(this.prompts.config, function (response) {
           this.components.config = {
             cssDir: response.cssDir,
             sassDir: response.sassDir,
@@ -373,19 +440,32 @@ module.exports = yo.Base.extend({
         done();
       }
     },
-    setBuild: function () {
-      this.conf = {
+    setConfig: function () {
+      var done = this.async();
+      // Bootstraps full build type has normalize already
+      // TODO: make this work
+      //if (this.build.normalize && /full/i.test(this.components.bootstrap.bootstrapType)) this.build.normalize = false;
+      this.config.set({
+        build: new Build(this.buildArray),
         components: this.components,
-        build: new Build(this.build),
-        path: this.path
-      };
-      this.config.set(this.conf);
-      console.log(this.config);
-      console.log(this.conf);
+        paths: this.paths
+      });
+
+      done();
     }
   },
 
-  //writing: {
+  writing: {
+    vars: function () {
+      var done = this.async,
+        from = this.components.extended ? 'extended/variables' : 'base/variables';
+
+      if (this.build.variables) mkdirp.sync(path.join(this.destinationPath(), 'util/'));
+
+      this.fsCopy(from, 'util/variables');
+      done();
+    }
+  },
   //  vars: function () {
   //    var done = this.async(),
   //      from;
@@ -483,7 +563,6 @@ module.exports = yo.Base.extend({
   //    }
   //    done();
   //  }
-  //},
 
   end: function () {
     console.log('*** Happy styling indeed! ***');
