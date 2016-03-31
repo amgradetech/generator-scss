@@ -1,5 +1,4 @@
 const yo = require('yeoman-generator'),
-  path = require('path'),
   mkdirp = require('mkdirp'),
   _forEach = require('lodash').forEach,
   del = require('del'),
@@ -60,16 +59,19 @@ module.exports = yo.Base.extend({
   initializing: function () {
 
     var _this = this;
-    var done = this.async();
+    //var done = this.async();
 
     this.default = {};
 
     this.default.path = {
       // Relative from appFolder
-      destinationPath: './scss',
+      destinationRoot: './scss',
       scssMixinsPath: '../node_modules/scss-mixins-collection/mixins/__mixins.scss',
       bootstrapScssPath: '../node_modules/bootstrap/scss'
     };
+
+    // TODO: add support for prompting destinationPath
+    this.destinationRoot(this.default.path.destinationPath);
 
     this.default.config = {
       cssDir: './css',
@@ -84,7 +86,7 @@ module.exports = yo.Base.extend({
     this.buildArray = [];
     this.build = this.config.get('build') || new Build(this.buildArray);
 
-    console.log(this.build);
+    //console.log(this.build);
 
     this.components = this.config.get('components') || {};
     this.paths = this.config.get('paths') || {};
@@ -303,11 +305,7 @@ module.exports = yo.Base.extend({
         }.bind(_this)
       }
     };
-
-    // TODO: add support for prompting destinationPath
-    this.destinationPath(this.default.path.destinationPath);
-
-    done();
+    //done();
     //try {
     //  console.log(fs.realpathSync('./scss', function (err) {
     //    console.log('readdir cb', err);
@@ -334,15 +332,15 @@ module.exports = yo.Base.extend({
     // Wrappers for fs functions
     this.fsCopy = function (from, to) {
       this.fs.copy(
-        path.join(this.templatePath(), from),
-        path.join(this.destinationPath(), to)
+        this.templatePath(from),
+        this.destinationPath(to)
       );
     }.bind(this);
     this.fsWrite = function (to, string) {
-      this.fs.write(path.join(this.destinationPath(), to), string);
+      this.fs.write(this.destinationPath(to), string);
     }.bind(this);
     this.fsRead = function (from) {
-      return this.fs.read(path.join(this.templatePath(), from));
+      return this.fs.read(this.templatePath(from));
     }.bind(this);
     /**
      * Custom templating
@@ -457,13 +455,11 @@ module.exports = yo.Base.extend({
 
   writing: {
     vars: function () {
-      var done = this.async,
+      var
         from = this.components.extended ? 'extended/variables' : 'base/variables';
-
-      if (this.build.variables) mkdirp.sync(path.join(this.destinationPath(), 'util/'));
+      if (this.build.variables) mkdirp.sync(this.destinationPath('util/'));
 
       this.fsCopy(from, 'util/variables');
-      done();
     }
   },
   //  vars: function () {
