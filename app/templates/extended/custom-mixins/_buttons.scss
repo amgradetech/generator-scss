@@ -1,5 +1,5 @@
 // Core button mixin
-@mixin btn {
+/*@mixin btn {
   @include ellipsis;
   @include reset-link;
   -webkit-appearance: none;
@@ -9,47 +9,4 @@
   vertical-align: top;
   text-align: center;
   @include transition-all($trans-length);
-}
-
-// Button sizes
-@mixin btn-size($padding, $height, $font-size) {
-  padding-left: $padding;
-  padding-right: $padding;
-  height: $height;
-  line-height: $height;
-}
-
-@mixin btn-md {
-  @include btn-size(1.2em, $height-input, $fs-base);
-}
-
-// Button colors
-@mixin btn-color($font-color, $bg-color) {
-  background-color: $bg-color;
-  color: $font-color;
-}
-
-@mixin btn-gray {
-  @include btn-color($font-black, $bg-gray);
-}
-
-
-// Button sets
-
-@mixin btn-default {
-  @include btn;
-  @include btn-md;
-  @include btn-gray;
-}
-
-// Default button constructor
-@mixin addBtn($color, $bgcolor) {
-    @include btn-default;
-    @include btn-md;
-    color: $color;
-    background-color: $bgcolor;
-    @include on-state {
-        background-color: lighten($bgcolor, 4%);
-        color: $color;
-    }
-}
+}*/

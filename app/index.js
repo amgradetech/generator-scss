@@ -395,7 +395,7 @@ module.exports = yo.Base.extend({
       var done = this.async();
       var prompts = [];
 
-      if (this.buildArrayHasStr('layout') && this.buildArrayHasStr('variables')) {
+      if (this.buildArrayHasStr('layout') && this.buildArrayHasStr('variables') && this.buildArrayHasStr('mixins')) {
         prompts.push(this.prompts.extendedFiles);
       }
       if (this.buildArrayHasStr('mixins')) {
@@ -462,24 +462,13 @@ module.exports = yo.Base.extend({
       this.fsCopy(from, 'util/variables');
     }
   },
-  //  vars: function () {
-  //    var done = this.async(),
-  //      from;
-  //
-  //    if (this.build.variables)
-  //      mkdirp.sync(path.join(this.destinationPath(), 'util/'));
-  //
-  //    this.fsCopy(from, 'util/variables');
-  //
-  //    done();
-  //  },
-  //  mixins: function () {
-  //    var done = this.async();
-  //    if (this.build.mixins) {
-  //      // Load scss-mixins-collection
-  //    }
-  //    done();
-  //  },
+/*  mixins: function () {
+    var done = this.async();
+    if (this.build.mixins) {
+      // Load scss-mixins-collection
+    }
+    done();
+  },*/
   //  customMixins: function () {
   //    var done = this.async();
   //    if (this.build.customMixins) {
