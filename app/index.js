@@ -441,8 +441,9 @@ module.exports = yo.Base.extend({
     setConfig: function () {
       var done = this.async();
       // Bootstraps full build type has normalize already
-      // TODO: make this work
-      //if (this.build.normalize && /full/i.test(this.components.bootstrap.bootstrapType)) this.build.normalize = false;
+      console.log(this.build.normalize);
+      if (this.build.normalize && /full/i.test(this.components.bootstrap.bootstrapType)) this.build.normalize = false;
+
       this.config.set({
         build: new Build(this.buildArray),
         components: this.components,
