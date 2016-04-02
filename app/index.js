@@ -70,9 +70,6 @@ module.exports = yo.Base.extend({
       bootstrapScssPath: '../node_modules/bootstrap/scss'
     };
 
-    // TODO: add support for prompting destinationPath
-    this.destinationRoot(this.default.path.destinationPath);
-
     this.default.config = {
       cssDir: '../css',
       sassDir: './scss',
@@ -449,7 +446,6 @@ module.exports = yo.Base.extend({
       }
 
       this.build = new Build(this.buildArray);
-      console.log(this.build);
       this.config.set({
         build: this.build,
         components: this.components,
@@ -461,6 +457,11 @@ module.exports = yo.Base.extend({
   },
 
   writing: {
+    pre: function() {
+      // TODO: add support for prompting destinationPath
+      this.destinationRoot(this.default.path.destinationRoot);
+      this.appname = 'scss';
+    },
     vars: function () {
       var
         from = this.components.extended ? 'extended/variables' : 'base/variables';
