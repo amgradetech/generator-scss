@@ -1,0 +1,2 @@
+// Import mixins library
+@import "{% scssMixinsPath %}";

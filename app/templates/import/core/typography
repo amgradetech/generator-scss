@@ -1,2 +1,2 @@
 // Font-face declaration
-@import "typography/typography";
+@import "typography";

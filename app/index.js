@@ -20,7 +20,7 @@ var libComponents = [
   'mixins',
   'normalize',
   'pages',
-  'sprite',
+  //'sprite',
   'typography',
   'variables'
 ];
@@ -74,10 +74,10 @@ module.exports = yo.Base.extend({
     this.destinationRoot(this.default.path.destinationPath);
 
     this.default.config = {
-      cssDir: './css',
+      cssDir: '../css',
       sassDir: './scss',
-      fontsDir: './fonts',
-      imagesDir: './images',
+      fontsDir: '../fonts',
+      imagesDir: '../images',
       outputStyle: ':nested',
       lineComments: true,
       relativeAssets: true
@@ -147,11 +147,11 @@ module.exports = yo.Base.extend({
             checked: this.build.customMixins,
             name: '- custom-mixins'
           },
-          {
-            value: 'sprite',
-            checked: this.build.sprite,
-            name: '- Compass spriting'
-          },
+          //{
+          //  value: 'sprite',
+          //  checked: this.build.sprite,
+          //  name: '- Compass spriting'
+          //},
           {
             value: 'normalize',
             checked: this.build.normalize,
@@ -182,12 +182,14 @@ module.exports = yo.Base.extend({
       scssMixinsPath: {
         type: 'input',
         name: 'scssMixinsPath',
-        message: 'Set relative path to the _mixins.scss from this folder ( default: ' + this.default.path.scssMixinsPath + ' ):'
+        message: 'Set relative path to the _mixins.scss from this folder:',
+        default: this.default.path.scssMixinsPath
       },
       bootstrapScssPath: {
         type: 'input',
         name: 'bootstrapScssPath',
-        message: 'Set relative path to the bootstrap/scss folder from this folder ( default: ' + this.default.path.bootstrapScssPath + ' ):'
+        message: 'Set relative path to the bootstrap/scss folder from this folder:',
+        default: this.default.path.bootstrapScssPath
       },
       bootstrapType: {
         type: 'list',
@@ -285,23 +287,23 @@ module.exports = yo.Base.extend({
     this.writes = {
       bootstrapBuild: {
         full: function () {
-          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap', {bootstrapScssPath: _this.options.bootstrapScssPath}));
+          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap', {bootstrapScssPath: _this.paths.bootstrapScssPath}));
         }.bind(_this),
         fullFlex: function () {
           var content = this.fsRead('bootstrap/bootstrap-flex') + '\n';
-          content += this.fsTpl('bootstrap/bootstrap', {bootstrapScssPath: _this.options.bootstrapScssPath});
+          content += this.fsTpl('bootstrap/bootstrap', {bootstrapScssPath: _this.paths.bootstrapScssPath});
           this.fsWrite('bootstrap.scss', content);
         }.bind(_this),
         grid: function () {
-          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap-grid', {bootstrapScssPath: _this.options.bootstrapScssPath}));
+          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap-grid', {bootstrapScssPath: _this.paths.bootstrapScssPath}));
         }.bind(_this),
         gridFlex: function () {
           var content = this.fsRead('bootstrap/bootstrap-flex') + '\n';
-          content += this.fsTpl('bootstrap/bootstrap-grid', {bootstrapScssPath: _this.options.bootstrapScssPath});
+          content += this.fsTpl('bootstrap/bootstrap-grid', {bootstrapScssPath: _this.paths.bootstrapScssPath});
           this.fsWrite('bootstrap.scss', content);
         }.bind(_this),
         reboot: function () {
-          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap-reboot', {bootstrapScssPath: _this.options.bootstrapScssPath}));
+          this.fsWrite('bootstrap.scss', this.fsTpl('bootstrap/bootstrap-reboot', {bootstrapScssPath: _this.paths.bootstrapScssPath}));
         }.bind(_this)
       }
     };
@@ -349,7 +351,8 @@ module.exports = yo.Base.extend({
      * @return {String} - content with replaced placeholders
      */
     this.fsTpl = function (from, placeholders) {
-      var content = this.fsRead(from);
+      var content = this.fsRead(this.templatePath(from));
+
       _forEach(placeholders, function (value, key) {
         content = _replaceAll(content, '{% ' + key + ' %}', value);
       });
@@ -411,7 +414,7 @@ module.exports = yo.Base.extend({
           this.paths.scssMixinsPath = response.scssMixinsPath || '';
           this.paths.bootstrapScssPath = response.bootstrapScssPath || '';
           this.components.bootstrap = {
-            bootstrapType: response.bootstrapType || 'none'
+            bootstrapBuild: response.bootstrapType || 'none'
           };
           done();
         }.bind(this))
@@ -441,11 +444,14 @@ module.exports = yo.Base.extend({
     setConfig: function () {
       var done = this.async();
       // Bootstraps full build type has normalize already
-      console.log(this.build.normalize);
-      if (this.build.normalize && /full/i.test(this.components.bootstrap.bootstrapType)) this.build.normalize = false;
+      if (this.build.normalize && /full/i.test(this.components.bootstrap.bootstrapType)) {
+        this.buildArray[this.buildArray.indexOf('normalize')] = undefined;
+      }
 
+      this.build = new Build(this.buildArray);
+      console.log(this.build);
       this.config.set({
-        build: new Build(this.buildArray),
+        build: this.build,
         components: this.components,
         paths: this.paths
       });
@@ -458,98 +464,113 @@ module.exports = yo.Base.extend({
     vars: function () {
       var
         from = this.components.extended ? 'extended/variables' : 'base/variables';
-      if (this.build.variables) mkdirp.sync(this.destinationPath('util/'));
+      if (this.build.variables) {
+        //mkdirp.sync(this.destinationPath('util/'));
+        this.fsCopy(from, 'util/variables');
+      }
+    },
 
-      this.fsCopy(from, 'util/variables');
+    /*  mixins: function () {
+     var done = this.async();
+     if (this.build.mixins) {
+     // Load scss-mixins-collection
+     }
+     done();
+     },*/
+    customMixins: function () {
+      var done = this.async();
+      if (this.build.customMixins) {
+        this.fsCopy('extended/custom-mixins', 'util/custom-mixins');
+      }
+      done();
+    },
+    //  sprite: function () {
+    //    var done = this.async();
+    //    if (this.build.sprite) {
+    //      this.files.util += '\n' + this.fsRead('import/util/spriting');
+    //      this.fsCopy('extended/_spriting.scss', 'util/_spriting.scss');
+    //    }
+    //    done();
+    //  },
+    //
+    typography: function () {
+      var done = this.async();
+      if (this.build.typography) {
+        this.fsCopy('_typography.scss', '_typography.scss');
+      }
+      done();
+    },
+    pages: function () {
+      var done = this.async();
+      if (this.build.pages) {
+        mkdirp.sync(this.destinationPath('pages'));
+        this.fsWrite('pages/__pages.scss', '// Sets import for scss files per unique page');
+      }
+      done();
+    },
+    layout: function () {
+      var done = this.async(),
+        from;
+
+      if (this.build.layout) {
+        from = this.components.extended ? 'extended/layout' : 'base/layout';
+        this.fsCopy(from, 'layout');
+      }
+      done();
+    },
+    helpers: function () {
+      var done = this.async();
+      if (this.build.helpers) {
+        this.fsCopy('extended/helpers', 'helpers');
+      }
+      done();
+    },
+    util: function () {
+      var done = this.async();
+      var utilContent = '';
+
+      if (this.build.variables) utilContent += this.fsRead('import/util/variables') + '\n';
+      if (this.build.mixins) utilContent += this.fsTpl('import/util/mixins', {scssMixinsPath: this.paths.scssMixinsPath}) + '\n';
+      if (this.build.customMixins) utilContent += this.fsRead('import/util/custom-mixins') + '\n';
+      if (this.build.sprite) utilContent += this.fsRead('import/util/spriting');
+
+      this.fsWrite('util/__util.scss', utilContent);
+
+      done();
+    },
+    core: function () {
+      var done = this.async();
+      var coreContent = '';
+
+      if (this.build.variables || this.build.mixins || this.build.customMixins || this.build.sprite) coreContent += this.fsRead('import/core/util') + '\n';
+      if (this.build.typography) coreContent += this.fsRead('import/core/typography') + '\n';
+      if (this.build.layout) coreContent += this.fsRead('import/core/layout') + '\n';
+      if (this.build.pages) coreContent += this.fsRead('import/core/pages') + '\n';
+      if (this.build.helpers) coreContent += this.fsRead('import/core/helpers');
+
+      this.fsWrite('core.scss', coreContent);
+
+      done();
+    },
+      config: function () {
+        var done = this.async();
+        if (this.build.config) {
+          this.fsWrite('config.rb', this.fsTpl('import/config/config.rb', this.components.config));
+        }
+        done();
+      },
+    bootstrap: function () {
+      var done = this.async();
+      if (this.build.bootstrap) {
+        if (!/grid/.test(this.options.bootstrapBuild)) {
+          mkdirp.sync(this.destinationPath('bootstrap'));
+          this.fsWrite('bootstrap/_variables-override.scss', '// Set Bootstrap\'s variables overrides here\n');
+        }
+        this.writes.bootstrapBuild[this.components.bootstrap.bootstrapBuild]();
+      }
+      done();
     }
   },
-/*  mixins: function () {
-    var done = this.async();
-    if (this.build.mixins) {
-      // Load scss-mixins-collection
-    }
-    done();
-  },*/
-  //  customMixins: function () {
-  //    var done = this.async();
-  //    if (this.build.customMixins) {
-  //      this.files.util += '\n' + this.fsRead('import/util/custom-mixins');
-  //      this.fsCopy('extended/custom-mixins', 'util/custom-mixins');
-  //    }
-  //    done();
-  //  },
-  //  sprite: function () {
-  //    var done = this.async();
-  //    if (this.build.sprite) {
-  //      this.files.util += '\n' + this.fsRead('import/util/spriting');
-  //      this.fsCopy('extended/_spriting.scss', 'util/_spriting.scss');
-  //    }
-  //    done();
-  //  },
-  //
-  //  typography: function () {
-  //    var done = this.async();
-  //    if (this.build.typography) {
-  //      this.fsCopy('base/typography', 'typography');
-  //    }
-  //    done();
-  //  },
-  //  pages: function () {
-  //    var done = this.async();
-  //    if (this.build.pages) {
-  //      mkdirp.sync(path.join(this.destinationPath(), 'pages'));
-  //      this.fsWrite('pages/__pages.scss', '// Sets import for pages scss files');
-  //    }
-  //    done();
-  //  },
-  //  layout: function () {
-  //    var done = this.async(),
-  //      from;
-  //
-  //    if (this.build.layout) {
-  //      from = this.build.layout ? 'extended/layout' : 'base/layout';
-  //      this.fsCopy(from, 'layout');
-  //    }
-  //    done();
-  //  },
-  //  helpers: function () {
-  //    var done = this.async();
-  //    if (this.build.helpers) {
-  //      this.fsCopy('extended/helpers', 'helpers');
-  //    }
-  //    done();
-  //  },
-  //  util: function () {
-  //    var done = this.async();
-  //    this.fsWrite('util/__util.scss', 'util');
-  //    done();
-  //  },
-  //  core: function () {
-  //    var done = this.async();
-  //    this.fsWrite('core.scss', 'core');
-  //    done();
-  //  },
-  //  config: function () {
-  //    var done = this.async();
-  //    if (this.build.config) {
-  //
-  //    } else {
-  //      done();
-  //    }
-  //
-  //  },
-  //  bootstrap: function () {
-  //    var done = this.async();
-  //    if (this.build.bootstrap) {
-  //      if (!/grid/.test(this.options.bootstrapBuild)) {
-  //        mkdirp.sync(path.join(this.destinationPath(), 'bootstrap'));
-  //        this.fsWrite('bootstrap/_variables-override.scss', '// Set Bootstrap\'s variables overrides here\n');
-  //      }
-  //      this.config.bootstrapBuild[this.options.bootstrapBuild]();
-  //    }
-  //    done();
-  //  }
-
   end: function () {
     console.log('*** Happy styling indeed! ***');
   }
