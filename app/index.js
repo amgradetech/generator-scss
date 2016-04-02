@@ -170,7 +170,7 @@ module.exports = yo.Base.extend({
     setConfig: function () {
       var done = this.async();
       // Bootstraps full build type has normalize already
-      if (this.build.normalize && /full/i.test(this.components.bootstrap.bootstrapType)) {
+      if (this.build.normalize && (!!this.components.bootstrap || /full/i.test(this.components.bootstrap.bootstrapType))) {
         this.buildArray[this.buildArray.indexOf('normalize')] = undefined;
       }
 
@@ -199,20 +199,15 @@ module.exports = yo.Base.extend({
         this.fsCopy(from, 'util/variables');
       }
     },
-
     /*  mixins: function () {
-     var done = this.async();
      if (this.build.mixins) {
      // Load scss-mixins-collection
      }
-     done();
      },*/
     customMixins: function () {
-      var done = this.async();
       if (this.build.customMixins) {
         this.fsCopy('extended/custom-mixins', 'util/custom-mixins');
       }
-      done();
     },
     //  sprite: function () {
     //    var done = this.async();
@@ -224,39 +219,35 @@ module.exports = yo.Base.extend({
     //  },
     //
     typography: function () {
-      var done = this.async();
       if (this.build.typography) {
         this.fsCopy('_typography.scss', '_typography.scss');
       }
-      done();
     },
     pages: function () {
-      var done = this.async();
       if (this.build.pages) {
         mkdirp.sync(this.destinationPath('pages'));
         this.fsWrite('pages/__pages.scss', '// Sets import for scss files per unique page');
       }
-      done();
     },
     layout: function () {
-      var done = this.async(),
-        from;
+      var from;
 
       if (this.build.layout) {
         from = this.components.extended ? 'extended/layout' : 'base/layout';
         this.fsCopy(from, 'layout');
       }
-      done();
     },
     helpers: function () {
-      var done = this.async();
       if (this.build.helpers) {
         this.fsCopy('extended/helpers', 'helpers');
       }
-      done();
+    },
+    normalize: function(){
+      if(this.build.normalize) {
+        this.fsCopy('bootstrap/_normalize.scss', '_normalize.scss');
+      }
     },
     util: function () {
-      var done = this.async();
       var utilContent = '';
 
       if (this.build.variables) utilContent += this.fsRead('import/util/variables') + '\n';
@@ -266,31 +257,26 @@ module.exports = yo.Base.extend({
 
       this.fsWrite('util/__util.scss', utilContent);
 
-      done();
     },
     core: function () {
-      var done = this.async();
       var coreContent = '';
 
       if (this.build.variables || this.build.mixins || this.build.customMixins || this.build.sprite) coreContent += this.fsRead('import/core/util') + '\n';
       if (this.build.typography) coreContent += this.fsRead('import/core/typography') + '\n';
+      if (this.build.normalize) coreContent += this.fsRead('import/core/normalize') + '\n';
       if (this.build.layout) coreContent += this.fsRead('import/core/layout') + '\n';
       if (this.build.pages) coreContent += this.fsRead('import/core/pages') + '\n';
       if (this.build.helpers) coreContent += this.fsRead('import/core/helpers');
 
       this.fsWrite('core.scss', coreContent);
 
-      done();
     },
     config: function () {
-      var done = this.async();
       if (this.build.config) {
         this.fsWrite('../config.rb', this.fsTpl('import/config/config.rb', this.components.config));
       }
-      done();
     },
     bootstrap: function () {
-      var done = this.async();
       if (this.build.bootstrap) {
         if (!/grid/.test(this.options.bootstrapBuild)) {
           mkdirp.sync(this.destinationPath('bootstrap'));
@@ -298,7 +284,6 @@ module.exports = yo.Base.extend({
         }
         this.writes.bootstrapBuild[this.components.bootstrap.bootstrapBuild]();
       }
-      done();
     }
   },
   end: function () {

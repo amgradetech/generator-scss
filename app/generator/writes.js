@@ -11,7 +11,7 @@ module.exports = function(_this) {
       }.bind(_this),
       grid: function () {
         var content = this.fsTpl('bootstrap/bootstrap-flex', {enableFlex: 'false'}) + '\n';
-        content += this.fsTpl('bootstrap/bootstrap-grid', {bootstrapScssPath: _this.paths.bootstrapScssPath};
+        content += this.fsTpl('bootstrap/bootstrap-grid', {bootstrapScssPath: _this.paths.bootstrapScssPath});
         this.fsWrite('bootstrap.scss', content);
       }.bind(_this),
       gridFlex: function () {
