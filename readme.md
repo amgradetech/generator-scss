@@ -21,8 +21,8 @@ scss/
 │   ├── _backgrounds.scss
 │   ├── _layout.scss
 │   ├── _misc.scss
-│   └── _responsive.scss
-_text.scss
+│   ├── _responsive.scss
+│   └──_text.scss
 ├── layout/
 │   ├── partials/
 │   ├── __layout.scss
@@ -49,16 +49,19 @@ It is ready to be compiled with [compass](http://compass-style.org/).
 Core file contains @imports for everything in this kit:
 ``` javascript
 // Utility files (mixins, variables, sprites etc)
-@import 'util/util';
+@import 'util/__util';
 
 // Font-face declaration
 @import "typography/typography";
 
 // Main layout and reusable partials
-@import "layout/layout";
+@import "layout/__layout";
 
 // scss files for separate page
-// @import "pages/...";
+@import "pages/__pages";
+
+// helper classes
+@import "helpers/__helpers";
 
 ```
 
@@ -76,12 +79,22 @@ Meant to contain font imports and declarations
 
 ## util/
 This folder does not contain any styles to compile just variables, mixins, placeholders.
+``` javascript
+// Variables
+@import 'variables/__variables';
+
+// Import mixins library
+@import "../node_modules/scss-mixins-collection/mixins/__mixins.scss";
+
+// Custom mixins
+@import 'custom-mixins/__custom-mixins';
+```  
+
 Import vendor mixins into it's __util.scss.  
 @import it in every separate css file to use its contents.
 
 ## util/custom-mixins/
 Is for custom mixins and placeholders for your site.
-Don't forget to move some of them into general mixins folder and make merge request to this repo if you feel like they will be useful for every project.
 
 ## util/variables/
 Base variables stucture:  
@@ -95,3 +108,8 @@ variables/
 ├── _typography.scss
 └── _z-index-map.scss
 ```
+
+## bootstrap.scss  
+  
+You can add compiling of the bootstrap ^4.0 scss files into your folder. 
+Just set path to the bootstrap's scss ( default: node_modules/bootstrap/scss ) folder and choose type of build. 
