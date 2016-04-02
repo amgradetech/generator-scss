@@ -573,7 +573,7 @@ module.exports = yo.Base.extend({
     }
   },
   end: function () {
-    console.log('*** Happy styling indeed! ***');
+    console.log('★★★ Happy Styling! ★★★');
   }
 
 });
