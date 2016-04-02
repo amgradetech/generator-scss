@@ -71,10 +71,10 @@ module.exports = yo.Base.extend({
     };
 
     this.default.config = {
-      cssDir: '../css',
+      cssDir: './css',
       sassDir: './scss',
-      fontsDir: '../fonts',
-      imagesDir: '../images',
+      fontsDir: './fonts',
+      imagesDir: './images',
       outputStyle: ':nested',
       lineComments: true,
       relativeAssets: true
@@ -556,7 +556,7 @@ module.exports = yo.Base.extend({
       config: function () {
         var done = this.async();
         if (this.build.config) {
-          this.fsWrite('config.rb', this.fsTpl('import/config/config.rb', this.components.config));
+          this.fsWrite('../config.rb', this.fsTpl('import/config/config.rb', this.components.config));
         }
         done();
       },
