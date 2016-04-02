@@ -7,9 +7,8 @@ const yo = require('yeoman-generator'),
   readdir = fs.readdirSync,
   generator = requireTree('./generator'),
   utils = requireTree('./utils'),
-
   _replaceAll = utils.replaceAll,
-  // Array of avaiable components
+// Array of avaiable components
   libComponents = generator.libcomponents,
   Build = generator.build,
   arrayHasStr = utils.arrayHasStr;
@@ -32,26 +31,6 @@ module.exports = yo.Base.extend({
     this.paths = this.config.get('paths') || {};
     this.prompts = generator.prompts(this);
     this.writes = generator.writes(this);
-
-    //done();
-    //try {
-    //  console.log(fs.realpathSync('./scss', function (err) {
-    //    console.log('readdir cb', err);
-    //  }));
-    //} catch(err) {
-    //  console.log(err);
-    //  done();
-    //}
-
-    /*this.prompt({
-     type: 'confirm',
-     name: 'removeFolder',
-     message: 'This action will remove everything withing ./scss folder and build it from scratch. Proceed?'
-     }, function (response) {
-     if (!response.removeFolder) return false;
-     del.sync('./scss');
-     done();
-     });*/
 
     // Wrapper for arrayHasStr();
     this.buildArrayHasStr = function (str) {
@@ -209,15 +188,11 @@ module.exports = yo.Base.extend({
         this.fsCopy('extended/custom-mixins', 'util/custom-mixins');
       }
     },
-    //  sprite: function () {
-    //    var done = this.async();
-    //    if (this.build.sprite) {
-    //      this.files.util += '\n' + this.fsRead('import/util/spriting');
-    //      this.fsCopy('extended/_spriting.scss', 'util/_spriting.scss');
-    //    }
-    //    done();
-    //  },
-    //
+    sprite: function () {
+      if (this.build.sprite) {
+        this.fsCopy('_sprite.scss', 'util/_sprite.scss');
+      }
+    },
     typography: function () {
       if (this.build.typography) {
         this.fsCopy('_typography.scss', '_typography.scss');
@@ -242,8 +217,8 @@ module.exports = yo.Base.extend({
         this.fsCopy('extended/helpers', 'helpers');
       }
     },
-    normalize: function(){
-      if(this.build.normalize) {
+    normalize: function () {
+      if (this.build.normalize) {
         this.fsCopy('bootstrap/_normalize.scss', '_normalize.scss');
       }
     },
@@ -253,7 +228,7 @@ module.exports = yo.Base.extend({
       if (this.build.variables) utilContent += this.fsRead('import/util/variables') + '\n';
       if (this.build.mixins) utilContent += this.fsTpl('import/util/mixins', {scssMixinsPath: this.paths.scssMixinsPath}) + '\n';
       if (this.build.customMixins) utilContent += this.fsRead('import/util/custom-mixins') + '\n';
-      if (this.build.sprite) utilContent += this.fsRead('import/util/spriting');
+      if (this.build.sprite) utilContent += this.fsRead('import/util/sprite');
 
       this.fsWrite('util/__util.scss', utilContent);
 

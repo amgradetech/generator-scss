@@ -7,7 +7,7 @@ module.exports = [
   'mixins',
   'normalize',
   'pages',
-  //'sprite',
+  'sprite',
   'typography',
   'variables'
 ];

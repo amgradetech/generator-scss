@@ -57,11 +57,11 @@ module.exports = function(_this) {
           checked: _this.build.customMixins,
           name: '- custom-mixins'
         },
-        //{
-        //  value: 'sprite',
-        //  checked: _this.build.sprite,
-        //  name: '- Compass spriting'
-        //},
+        {
+          value: 'sprite',
+          checked: _this.build.sprite,
+          name: '- Compass spriting'
+        },
         {
           value: 'normalize',
           checked: _this.build.normalize,
