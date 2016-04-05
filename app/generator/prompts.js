@@ -93,13 +93,13 @@ module.exports = function(_this) {
       type: 'input',
       name: 'scssMixinsPath',
       message: 'Set relative path to the _mixins.scss from this folder:',
-      default: _this.default.path.scssMixinsPath
+      default: _this.default.paths.scssMixinsPath
     },
     bootstrapScssPath: {
       type: 'input',
       name: 'bootstrapScssPath',
       message: 'Set relative path to the bootstrap/scss folder from this folder:',
-      default: _this.default.path.bootstrapScssPath
+      default: _this.default.paths.bootstrapScssPath
     },
     bootstrapType: {
       type: 'list',
@@ -193,4 +193,4 @@ module.exports = function(_this) {
       }
     ]
   };
-}
+};

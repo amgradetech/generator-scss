@@ -1,5 +1,5 @@
 module.exports = {
-  path: {
+  paths: {
     // Relative from appFolder
     destinationRoot: './scss',
     scssMixinsPath: '../node_modules/scss-mixins-collection/mixins/__mixins.scss',

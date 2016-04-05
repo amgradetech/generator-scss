@@ -1,17 +1,16 @@
-const yo = require('yeoman-generator'),
-  requireTree = require('require-tree'),
-  mkdirp = require('mkdirp'),
-  _forEach = require('lodash').forEach,
-  del = require('del'),
-  fs = require('fs'),
-  readdir = fs.readdirSync,
-  generator = requireTree('./generator'),
-  utils = requireTree('./utils'),
-  _replaceAll = utils.replaceAll,
-// Array of avaiable components
-  libComponents = generator.libcomponents,
-  Build = generator.build,
-  arrayHasStr = utils.arrayHasStr;
+const yo          = require('yeoman-generator'),
+  requireTree     = require('require-tree'),
+  mkdirp          = require('mkdirp'),
+  _forEach        = require('lodash').forEach,
+  del             = require('del'),
+  fs              = require('fs'),
+  readdir         = fs.readdirSync,
+  generator       = requireTree('./generator'),
+  utils           = requireTree('./utils'),
+  _replaceAll     = utils.replaceAll,
+  libComponents   = generator.libcomponents,
+  Build           = generator.build,
+  arrayHasStr     = utils.arrayHasStr;
 
 module.exports = yo.Base.extend({
 
@@ -148,12 +147,14 @@ module.exports = yo.Base.extend({
     },
     setConfig: function () {
       var done = this.async();
+
       // Bootstraps full build type has normalize already
       if (this.build.normalize && (!!this.components.bootstrap || /full/i.test(this.components.bootstrap.bootstrapType))) {
         this.buildArray[this.buildArray.indexOf('normalize')] = undefined;
       }
 
       this.build = new Build(this.buildArray);
+
       this.config.set({
         build: this.build,
         components: this.components,
@@ -261,6 +262,7 @@ module.exports = yo.Base.extend({
       }
     }
   },
+
   end: function () {
     console.log('★★★ Happy Styling! ★★★');
   }
