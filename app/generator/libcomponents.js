@@ -1,14 +1,8 @@
 // Array of all avaiable scaffold components
 module.exports = [
   'bootstrap',
-  'config',
-  'customMixins',
+  'components',
   'helpers',
   'layout',
-  'mixins',
-  'normalize',
-  'pages',
-  'sprite',
-  'typography',
-  'variables'
+  'scenes',
 ];

@@ -1,2 +1,0 @@
-// Utility files (mixins, variables, sprites etc)
-@import 'util/__util';

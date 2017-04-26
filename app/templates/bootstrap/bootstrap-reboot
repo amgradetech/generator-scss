@@ -1,7 +1,0 @@
-@import "{% bootstrapScssPath %}/variables";
-@import "bootstrap/variables-override";
-@import "{% bootstrapScssPath %}/mixins/hover";
-@import "{% bootstrapScssPath %}/mixins/tab-focus";
-
-@import "{% bootstrapScssPath %}/normalize";
-@import "{% bootstrapScssPath %}/reboot";
