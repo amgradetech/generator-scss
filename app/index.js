@@ -1,17 +1,10 @@
 'use strict';
 
 
-const _forEach = require('lodash/forEach');
-const chalk = require('chalk');
-const del = require('del');
-const figures = require('figures');
-const fs = require('fs');
-const mkdirp = require('mkdirp');
-const requireTree = require('require-tree');
 const yo = require('yeoman-generator');
 
-
 const arrayHas = (arr, str) => arr.indexOf(str) !== -1
+
 
 module.exports = yo.Base.extend({
   constructor: function() {
