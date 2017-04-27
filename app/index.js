@@ -168,7 +168,7 @@ module.exports = yo.Base.extend({
   writing: {
     pre: function () {
       // TODO: add support for prompting destinationPath
-      this.destinationRoot(this.default.path.destinationRoot);
+      this.destinationRoot(this.default.paths.destinationRoot);
       this.appname = 'scss';
     },
     vars: function () {
