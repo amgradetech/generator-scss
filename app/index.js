@@ -1,153 +1,128 @@
-const yo = require('yeoman-generator'),
-  requireTree = require('require-tree'),
-  mkdirp = require('mkdirp'),
-  _forEach = require('lodash').forEach,
-  del = require('del'),
-  fs = require('fs'),
-  readdir = fs.readdirSync,
-  generator = requireTree('./generator'),
-  utils = requireTree('./utils'),
-  _replaceAll = utils.replaceAll,
-  libComponents = generator.libcomponents,
-  Build = generator.build,
-  arrayHasStr = utils.arrayHasStr;
+'use strict';
+
+
+const _forEach = require('lodash/forEach');
+const chalk = require('chalk');
+const del = require('del');
+const figures = require('figures');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const requireTree = require('require-tree');
+const yo = require('yeoman-generator');
+
+
+const arrayHas = (arr, str) => arr.indexOf(str) !== -1
 
 module.exports = yo.Base.extend({
-
   constructor: function() {
+    console.log('constructor');
     yo.Base.apply(this, arguments);
   },
 
   initializing: function() {
-
-    var _this = this;
-    //var done = this.async();
-
-    this.default = generator.defaults;
-    this.buildArray = [];
-    this.build = this.config.get('build') || new Build(this.buildArray);
-    this.components = this.config.get('components') || {};
-    this.paths = this.config.get('paths') || {};
-    this.prompts = generator.prompts(this);
-    this.writes = generator.writes(this);
-
-    // Wrapper for arrayHasStr();
-    this.buildArrayHasStr = function(str) {
-      return arrayHasStr(_this.buildArray, str);
+    this.buildDefaults = {
+      destinationRoot: './src/scss/',
+      components: [
+        'bootstrap',
+        'components',
+        'helpers',
+        'layout',
+        'scenes',
+      ]
     };
-    // Wrappers for fs functions
-    this.fsCopy = function(from, to) {
-      this.fs.copy(
-        this.templatePath(from),
-        this.destinationPath(to)
-      );
-    }.bind(this);
-    this.fsWrite = function(to, string) {
-      this.fs.write(this.destinationPath(to), string);
-    }.bind(this);
-    this.fsRead = function(from) {
-      return this.fs.read(this.templatePath(from));
-    }.bind(this);
+
+    this.build = this.config.get('build') || this.buildDefaults;
+
+    this.prompts = {
+      destinationRoot: {
+        type: 'input',
+        name: 'destinationRoot',
+        message: 'Set where to put generated files:',
+        default: this.build.destinationRoot
+      },
+      components: {
+        type: 'checkbox',
+        name: 'components',
+        message: 'Which folders you would like to use?',
+        choices: [{
+          value: 'bootstrap',
+          checked: arrayHas(this.build.components, 'bootstrap'),
+          name: 'bootstrap4 source'
+        }, {
+          value: 'components',
+          checked: arrayHas(this.build.components, 'components'),
+          name: 'components'
+        }, {
+          value: 'helpers',
+          checked: arrayHas(this.build.components, 'helpers'),
+          name: 'helpers'
+        }, {
+          value: 'layout',
+          checked: arrayHas(this.build.components, 'layout'),
+          name: 'layout'
+        }, {
+          value: 'scenes',
+          checked: arrayHas(this.build.components, 'scenes'),
+          name: 'scenes'
+        }]
+      }
+    };
   },
 
   prompting: {
-    components: function() {
+    destinationRoot() {
       var done = this.async();
 
-      this.prompt(this.prompts.components,
-        function(response) {
-          this.buildArray = [].concat(response.components)
+      this.prompt(this.prompts.destinationRoot, ({ destinationRoot }) => {
+        this.build.destinationRoot = destinationRoot
 
-          done();
-        }.bind(this)
-      );
+        done();
+      });
     },
 
+    components() {
+      var done = this.async();
+
+      this.prompt(this.prompts.components, ({ components }) => {
+        this.build.components = components
+
+        done();
+      });
+    },
+
+    setConfig() {
+      this.config.set({ build: this.build });
+    }
   },
 
   writing: {
-    pre: function() {
+    pre() {
       // TODO: add support for prompting destinationPath
-      this.destinationRoot(this.default.path.destinationRoot);
+      this.destinationRoot(this.build.destinationRoot);
       this.appname = 'scss';
     },
-    vars: function() {
-      varfrom = this.components.extended ? 'extended/variables' : 'base/variables';
-      if (this.build.variables) {
-        //mkdirp.sync(this.destinationPath('util/'));
-        this.fsCopy(from, 'util/variables');
-      }
-    },
-    /*  mixins: function () {
-     if (this.build.mixins) {
-     // Load scss-mixins-collection
-     }
-     },*/
-    customMixins: function() {
-      if (this.build.customMixins) {
-        this.fsCopy('extended/custom-mixins', 'util/custom-mixins');
-      }
-    },
-    sprite: function() {
-      if (this.build.sprite) {
-        this.fsCopy('_sprite.scss', 'util/_sprite.scss');
-      }
-    },
-    typography: function() {
-      if (this.build.typography) {
-        this.fsCopy('_typography.scss', '_typography.scss');
-      }
-    },
-    pages: function() {
-      if (this.build.pages) {
-        mkdirp.sync(this.destinationPath('pages'));
-        this.fsWrite('pages/__pages.scss', '// Sets import for scss files per unique page');
-      }
-    },
-    layout: function() {
-      var from;
 
-      if (this.build.layout) {
-        from = this.components.extended ? 'extended/layout' : 'base/layout';
-        this.fsCopy(from, 'layout');
-      }
-    },
-    helpers: function() {
-      if (this.build.helpers) {
-        this.fsCopy('extended/helpers', 'helpers');
-      }
-    },
-    normalize: function() {
-      if (this.build.normalize) {
-        this.fsCopy('bootstrap/_normalize.scss', '_normalize.scss');
-      }
-    },
-    util: function() {
-      var utilContent = '';
-
-      if (this.build.variables) utilContent += this.fsRead('import/util/variables') + '\n';
-      if (this.build.mixins) utilContent += this.fsTpl('import/util/mixins', { scssMixinsPath: this.paths.scssMixinsPath }) + '\n';
-      if (this.build.customMixins) utilContent += this.fsRead('import/util/custom-mixins') + '\n';
-      if (this.build.sprite) utilContent += this.fsRead('import/util/sprite');
-
-      this.fsWrite('util/__util.scss', utilContent);
-
-    },
-    core: function() {
-      var done = this.async()
-
-      libComponents.forEach(function(component){
-        if (this.build[component]) {
-          fsCopy(component, component)
-        }
+    components() {
+      this.build.components.forEach(component => {
+        this.fs.copy(
+          this.templatePath(component),
+          this.destinationPath(component)
+        );
       })
-
-      done();
     },
+
+    indexFile() {
+      let indexFile = '@import "node_modules/scss-mixins-collection/index";\n\n';
+
+      this.build.components.forEach(component => {
+        indexFile += `@import "${component}/__${component};\n`;
+      });
+
+      this.fs.write(this.destinationPath('styles.scss'), indexFile);
+    }
   },
 
   end: function() {
     console.log('★★★ Happy Styling! ★★★');
   }
-
 });
