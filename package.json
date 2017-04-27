@@ -8,7 +8,7 @@
     "url": "git+https://github.com/RusinovAnton/generator-scss.git"
   },
   "keywords": [
-    "yeoman-generator, scss, css, style, styling, preprocess"
+    "yeoman-generator, scss, css, style, styling, preprocess, boilerplate, scaffold, BEM"
   ],
   "author": "Rusinov Anton",
   "license": "MIT",
