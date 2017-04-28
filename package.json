@@ -5,7 +5,7 @@
   "main": "app/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RusinovAnton/generator-scss.git"
+    "url": "git+https://github.com/amgradetech/generator-scss"
   },
   "keywords": [
     "yeoman-generator, scss, css, style, styling, preprocess, boilerplate, scaffold, BEM"
@@ -13,9 +13,9 @@
   "author": "Rusinov Anton",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/RusinovAnton/generator-scss/issues"
+    "url": "https://github.com/amgradetech/generator-scss/issues"
   },
-  "homepage": "https://github.com/RusinovAnton/generator-scss#readme",
+  "homepage": "https://github.com/amgradetech/generator-scss",
   "dependencies": {
     "yeoman-generator": "^0.22.5"
   }
