@@ -3,16 +3,16 @@
 
 const yo = require('yeoman-generator');
 
-const arrayHas = (arr, str) => arr.indexOf(str) !== -1
+const arrayHas = (arr, str) => arr.indexOf(str) !== -1;
 
 
 module.exports = yo.Base.extend({
-  constructor: function() {
+  constructor: function () {
     console.log('constructor');
     yo.Base.apply(this, arguments);
   },
 
-  initializing: function() {
+  initializing: function () {
     this.buildDefaults = {
       destinationRoot: './src/scss/',
       components: [
@@ -21,6 +21,7 @@ module.exports = yo.Base.extend({
         'helpers',
         'layout',
         'scenes',
+        'utils',
       ]
     };
 
@@ -64,20 +65,20 @@ module.exports = yo.Base.extend({
 
   prompting: {
     destinationRoot() {
-      var done = this.async();
+      const done = this.async();
 
       this.prompt(this.prompts.destinationRoot, ({ destinationRoot }) => {
-        this.build.destinationRoot = destinationRoot
+        this.build.destinationRoot = destinationRoot;
 
         done();
       });
     },
 
     components() {
-      var done = this.async();
+      const done = this.async();
 
       this.prompt(this.prompts.components, ({ components }) => {
-        this.build.components = components
+        this.build.components = components;
 
         done();
       });
@@ -101,21 +102,38 @@ module.exports = yo.Base.extend({
           this.templatePath(component),
           this.destinationPath(component)
         );
-      })
+      });
+
+
+      // bootstrap build depends on utils
+      if (this.build.components.indexOf('bootstrap') !== -1 && this.build.components.indexOf('utils') === -1) {
+        this.fs.copy(
+          this.templatePath('utils'),
+          this.destinationPath('utils')
+        );
+      }
     },
 
     indexFile() {
       let indexFile = '@import "node_modules/scss-mixins-collection/index";\n\n';
 
       this.build.components.forEach(component => {
-        indexFile += `@import "${component}/__${component};\n`;
+        // utils are included in bootstrap build
+        if (component === 'utils')
+          return;
+
+        indexFile += `@import "${component}/__${component}";\n`;
       });
+
+      if (this.build.components.indexOf('bootstrap') === -1 && this.build.components.indexOf('utils') !== -1) {
+        indexFile += `@import "utils/__utils";\n`;
+      }
 
       this.fs.write(this.destinationPath('styles.scss'), indexFile);
     }
   },
 
-  end: function() {
+  end: function () {
     console.log('★★★ Happy Styling! ★★★');
   }
 });
