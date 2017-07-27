@@ -1,10 +1,8 @@
 'use strict';
 
-
 const yo = require('yeoman-generator');
-
+const path = require('path');
 const arrayHas = (arr, str) => arr.indexOf(str) !== -1;
-
 
 module.exports = yo.Base.extend({
   constructor: function () {
@@ -59,6 +57,11 @@ module.exports = yo.Base.extend({
           checked: arrayHas(this.build.components, 'scenes'),
           name: 'scenes'
         }]
+      },
+      lint: {
+        type    : 'confirm',
+        name    : 'lint',
+        message : 'Would you like to add .sass-lint.yml?'
       }
     };
   },
@@ -84,6 +87,16 @@ module.exports = yo.Base.extend({
       });
     },
 
+    lint() {
+      const done = this.async();
+
+      this.prompt(this.prompts.lint, ({ lint }) => {
+        this.build.lint = lint;
+
+        done();
+      })
+    },
+
     setConfig() {
       this.config.set({ build: this.build });
     }
@@ -91,7 +104,6 @@ module.exports = yo.Base.extend({
 
   writing: {
     pre() {
-      // TODO: add support for prompting destinationPath
       this.destinationRoot(this.build.destinationRoot);
       this.appname = 'scss';
     },
@@ -112,6 +124,15 @@ module.exports = yo.Base.extend({
           this.destinationPath('utils')
         );
       }
+    },
+
+    lint() {
+      if (!this.build.lint) {
+        return;
+      }
+
+      const lintFile = this.fs.read(this.templatePath('.sass-lint.yml'));
+      this.fs.write(this.destinationPath('.sass-lint.yml'), lintFile.replace('{% sourcePath %}', path.join(this.build.destinationRoot, '/**/*.scss')));
     },
 
     indexFile() {

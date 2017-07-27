@@ -1,0 +1,69 @@
+# run sass-lint -c .sass-lint.yml -v
+options:
+  merge-default-rules: true
+  formatter: stylish
+  max-warnings: 100
+files:
+  include: {% sourcePath %}
+rules:
+  class-name-format:
+    - 2
+    -
+      convention: hyphenatedbem
+  no-invalid-hex: 2
+  no-duplicate-properties:
+    - 2
+    -
+      exclude:
+        - display
+  no-css-comments: 2
+  declarations-before-nesting: 2
+  empty-line-between-blocks: 2
+  quotes: 2
+  zero-unit: 2
+  trailing-semicolon: 2
+  no-qualifying-elements:
+    - 2
+    -
+      allow-element-with-attribute: true
+  no-ids: 2
+  mixins-before-declarations:
+    - 2
+    -
+      exclude:
+        - breakpoint
+        - mq
+
+  no-warn: 1
+  no-debug: 1
+  no-ids: 2
+  no-important: 0
+  hex-notation: 0
+  indentation:
+    - 2
+    -
+      size: 2
+  property-sort-order: 0
+  space-before-brace: 2
+  space-between-parens: 2
+  space-before-colon: 2
+  space-after-colon: 2
+  no-transition-all: 2
+  one-declaration-per-line: 2
+  no-misspelled-properties: 2
+  nesting-depth: 2
+  max-line-length: 2
+  no-extends: 2
+  no-vendor-prefixes:
+    - 2
+    -
+      ignore-non-standard: true
+  variable-for-property:
+    - 2
+    -
+      properties:
+      - color
+      - font-size
+      - line-height
+
+  clean-import-paths: 0
